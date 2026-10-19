@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sveglia stilizzata: quadrante, lancette, due campanelle -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M34,36 L28,30 A8,8 0 0,1 40,28 Z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M74,36 L80,30 A8,8 0 0,0 68,28 Z" />
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M54,32 A22,22 0 1,1 53.99,32 Z M54,37 A17,17 0 1,0 54.01,37 Z" />
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="4" android:strokeLineCap="round"
+        android:pathData="M54,54 L54,43 M54,54 L62,58" />
+</vector>

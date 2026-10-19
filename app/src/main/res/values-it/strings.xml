@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Actions -->
+    <string name="action_back">Indietro</string>
+    <string name="action_cancel">Annulla</string>
+    <string name="action_delete">Elimina</string>
+    <string name="action_enable_bluetooth">Accendi Bluetooth</string>
+    <string name="action_grant_permission">Concedi permesso</string>
+    <string name="action_new_alarm">Sveglia</string>
+    <string name="action_ok">OK</string>
+    <string name="action_open_app_settings">Apri impostazioni dell\'app</string>
+    <string name="action_refresh">Aggiorna</string>
+    <string name="action_retry">Riprova</string>
+    <string name="action_save">Salva</string>
+    <string name="action_search">Cerca</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_sync_time">Sincronizza ora con il telefono</string>
+
+    <!-- Prerequisites -->
+    <string name="gate_no_bluetooth">Questo telefono non ha il Bluetooth.</string>
+    <string name="gate_permission">Per trovare e comandare la sveglia l\'app ha bisogno del permesso Bluetooth.</string>
+    <string name="gate_bluetooth_off">Il Bluetooth è spento.</string>
+
+    <!-- Scan -->
+    <string name="scan_your_clock">La tua sveglia</string>
+    <string name="scan_tap_to_open">Tocca per aprire</string>
+    <string name="scan_nearby">Sveglie nelle vicinanze</string>
+    <string name="scan_in_progress">Ricerca in corso… tieni il telefono vicino alla sveglia.</string>
+    <string name="scan_idle_hint">Premi «Cerca» per trovare la sveglia.</string>
+    <string name="scan_first_time_title">Prima volta?</string>
+    <string name="scan_first_time_body">La sveglia deve essere scollegata da Mi Home: rimuovila dall\'app oppure tieni premuto il pulsante finché l\'icona Bluetooth lampeggia. Al primo collegamento si legherà a questa app.</string>
+
+    <!-- Connection -->
+    <string name="status_connecting">Collegamento alla sveglia…</string>
+    <string name="status_connected">Collegata</string>
+    <string name="status_idle">In pausa · si ricollega al prossimo comando</string>
+    <string name="status_failed">Collegamento non riuscito</string>
+    <string name="status_rejected">Collegamento rifiutato</string>
+    <string name="status_firmware">Firmware %1$s</string>
+    <string name="connection_auth_help">La sveglia è ancora associata a Mi Home o Qingping+. Rimuovila dall\'app oppure tieni premuto il pulsante finché l\'icona Bluetooth lampeggia, poi premi Riprova: si legherà a questa app.</string>
+    <string name="connection_failed_help">Avvicinati alla sveglia e riprova.</string>
+
+    <!-- Sensors -->
+    <string name="sensor_temperature">%1$.1f °C</string>
+    <string name="sensor_humidity">%1$.0f %% UR</string>
+    <string name="sensor_battery">batteria %1$d %%</string>
+
+    <!-- Next alarm -->
+    <string name="next_alarm">Prossima sveglia</string>
+    <string name="next_alarm_disabled">Sveglie disattivate</string>
+    <string name="next_alarm_none">Nessuna</string>
+    <string name="next_alarm_pattern">EEEE d MMMM, HH:mm</string>
+    <string name="clock_timezone">Fuso della sveglia: %1$s</string>
+
+    <!-- Alarms -->
+    <string name="section_alarms">Sveglie</string>
+    <string name="alarms_master_switch">Sveglie attive</string>
+    <string name="alarms_empty">Nessuna sveglia impostata. Premi «+ Sveglia».</string>
+    <string name="alarm_new">Nuova sveglia</string>
+    <string name="alarm_edit">Modifica sveglia</string>
+    <string name="alarm_repeat">Ripeti</string>
+    <string name="alarm_once_hint">Nessun giorno: suona una sola volta.</string>
+    <string name="alarm_snooze">Snooze</string>
+    <string name="alarm_details_snooze">%1$s · snooze</string>
+    <string name="alarm_on">Attiva</string>
+    <string name="alarm_off">Disattivata</string>
+    <string name="days_once">Una volta</string>
+    <string name="days_every_day">Tutti i giorni</string>
+    <string name="days_workdays">Lun–Ven</string>
+    <string name="days_weekend">Weekend</string>
+
+    <!-- Clock settings -->
+    <string name="section_settings">Impostazioni sveglia</string>
+    <string name="settings_volume">Volume</string>
+    <string name="settings_24h">Formato 24 ore</string>
+    <string name="settings_celsius">Gradi Celsius</string>
+    <string name="settings_english">Display in inglese</string>
+    <string name="settings_english_hint">Altrimenti cinese</string>
+    <string name="settings_day_brightness">Luminosità di giorno</string>
+    <string name="settings_night_mode">Modalità notte</string>
+    <string name="settings_night_brightness">Luminosità di notte</string>
+    <string name="settings_night_start">Inizio notte</string>
+    <string name="settings_night_end">Fine notte</string>
+    <string name="settings_screen_light">Luce schermo: %1$d s</string>
+    <string name="value_percent">%1$d %%</string>
+
+    <!-- App settings -->
+    <string name="app_settings_title">Impostazioni</string>
+    <string name="app_settings_appearance">Aspetto</string>
+    <string name="theme_system">Segui il sistema</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
+    <string name="theme_amoled">AMOLED (nero puro)</string>
+    <string name="app_settings_dynamic_color">Colori Material You</string>
+    <string name="app_settings_dynamic_color_hint">Usa l\'accento preso dallo sfondo</string>
+    <string name="app_settings_dynamic_color_unsupported">Richiede Android 12 o successivo</string>
+    <string name="app_settings_language">Lingua</string>
+    <string name="language_system">Segui il dispositivo</string>
+
+    <!-- Messages -->
+    <string name="message_location_required">Su questa versione di Android la ricerca Bluetooth richiede la Posizione attiva</string>
+    <string name="message_time_synced">Ora sincronizzata (%1$s)</string>
+    <string name="message_slots_full">Tutti gli slot della sveglia sono occupati</string>
+    <string name="message_alarm_added">Sveglia aggiunta</string>
+    <string name="message_alarm_saved">Sveglia salvata</string>
+    <string name="message_alarm_deleted">Sveglia eliminata</string>
+    <string name="error_command">La sveglia ha rifiutato il comando. Riprova.</string>
+    <string name="error_connection">Collegamento perso. Avvicinati alla sveglia e riprova.</string>
+    <string name="error_permission">Il permesso Bluetooth è stato revocato.</string>
+    <string name="error_scan_failed">Ricerca fallita (codice %1$d)</string>
+</resources>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Actions -->
+    <string name="action_back">Atrás</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_enable_bluetooth">Activar Bluetooth</string>
+    <string name="action_grant_permission">Conceder permiso</string>
+    <string name="action_new_alarm">Alarma</string>
+    <string name="action_ok">Aceptar</string>
+    <string name="action_open_app_settings">Abrir ajustes de la app</string>
+    <string name="action_refresh">Actualizar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_search">Buscar</string>
+    <string name="action_stop">Detener</string>
+    <string name="action_sync_time">Sincronizar hora con el teléfono</string>
+
+    <!-- Prerequisites -->
+    <string name="gate_no_bluetooth">Este teléfono no tiene Bluetooth.</string>
+    <string name="gate_permission">La app necesita el permiso de Bluetooth para encontrar y controlar el reloj.</string>
+    <string name="gate_bluetooth_off">El Bluetooth está desactivado.</string>
+
+    <!-- Scan -->
+    <string name="scan_your_clock">Tu reloj</string>
+    <string name="scan_tap_to_open">Toca para abrir</string>
+    <string name="scan_nearby">Relojes cercanos</string>
+    <string name="scan_in_progress">Buscando… mantén el teléfono cerca del reloj.</string>
+    <string name="scan_idle_hint">Toca «Buscar» para encontrar el reloj.</string>
+    <string name="scan_first_time_title">¿Primera vez?</string>
+    <string name="scan_first_time_body">El reloj debe desvincularse de Mi Home: elimínalo de esa app o mantén pulsado el botón hasta que parpadee el icono de Bluetooth. En la primera conexión se vinculará a esta app.</string>
+
+    <!-- Connection -->
+    <string name="status_connecting">Conectando con el reloj…</string>
+    <string name="status_connected">Conectado</string>
+    <string name="status_idle">En pausa · se reconecta con el siguiente comando</string>
+    <string name="status_failed">Error de conexión</string>
+    <string name="status_rejected">Conexión rechazada</string>
+    <string name="status_firmware">Firmware %1$s</string>
+    <string name="connection_auth_help">El reloj sigue vinculado a Mi Home o Qingping+. Elimínalo de esa app o mantén pulsado el botón hasta que parpadee el icono de Bluetooth y toca Reintentar: se vinculará a esta app.</string>
+    <string name="connection_failed_help">Acércate al reloj e inténtalo de nuevo.</string>
+
+    <!-- Sensors -->
+    <string name="sensor_temperature">%1$.1f °C</string>
+    <string name="sensor_humidity">%1$.0f %% HR</string>
+    <string name="sensor_battery">batería %1$d %%</string>
+
+    <!-- Next alarm -->
+    <string name="next_alarm">Próxima alarma</string>
+    <string name="next_alarm_disabled">Alarmas desactivadas</string>
+    <string name="next_alarm_none">Ninguna</string>
+    <string name="next_alarm_pattern">EEEE d \'de\' MMMM, HH:mm</string>
+    <string name="clock_timezone">Zona horaria del reloj: %1$s</string>
+
+    <!-- Alarms -->
+    <string name="section_alarms">Alarmas</string>
+    <string name="alarms_master_switch">Alarmas activadas</string>
+    <string name="alarms_empty">No hay alarmas. Toca «+ Alarma».</string>
+    <string name="alarm_new">Nueva alarma</string>
+    <string name="alarm_edit">Editar alarma</string>
+    <string name="alarm_repeat">Repetir</string>
+    <string name="alarm_once_hint">Sin días: suena una sola vez.</string>
+    <string name="alarm_snooze">Posponer</string>
+    <string name="alarm_details_snooze">%1$s · posponer</string>
+    <string name="alarm_on">Activada</string>
+    <string name="alarm_off">Desactivada</string>
+    <string name="days_once">Una vez</string>
+    <string name="days_every_day">Todos los días</string>
+    <string name="days_workdays">Lun–Vie</string>
+    <string name="days_weekend">Fin de semana</string>
+
+    <!-- Clock settings -->
+    <string name="section_settings">Ajustes del reloj</string>
+    <string name="settings_volume">Volumen</string>
+    <string name="settings_24h">Formato 24 horas</string>
+    <string name="settings_celsius">Grados Celsius</string>
+    <string name="settings_english">Pantalla en inglés</string>
+    <string name="settings_english_hint">Si no, chino</string>
+    <string name="settings_day_brightness">Brillo de día</string>
+    <string name="settings_night_mode">Modo noche</string>
+    <string name="settings_night_brightness">Brillo de noche</string>
+    <string name="settings_night_start">Inicio de la noche</string>
+    <string name="settings_night_end">Fin de la noche</string>
+    <string name="settings_screen_light">Luz de pantalla: %1$d s</string>
+    <string name="value_percent">%1$d %%</string>
+
+    <!-- App settings -->
+    <string name="app_settings_title">Ajustes</string>
+    <string name="app_settings_appearance">Apariencia</string>
+    <string name="theme_system">Seguir el sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="theme_amoled">AMOLED (negro puro)</string>
+    <string name="app_settings_dynamic_color">Colores Material You</string>
+    <string name="app_settings_dynamic_color_hint">Usar el acento del fondo de pantalla</string>
+    <string name="app_settings_dynamic_color_unsupported">Requiere Android 12 o posterior</string>
+    <string name="app_settings_language">Idioma</string>
+    <string name="language_system">Seguir el dispositivo</string>
+
+    <!-- Messages -->
+    <string name="message_location_required">En esta versión de Android la búsqueda Bluetooth requiere la ubicación activada</string>
+    <string name="message_time_synced">Hora sincronizada (%1$s)</string>
+    <string name="message_slots_full">Todas las ranuras de alarma del reloj están ocupadas</string>
+    <string name="message_alarm_added">Alarma añadida</string>
+    <string name="message_alarm_saved">Alarma guardada</string>
+    <string name="message_alarm_deleted">Alarma eliminada</string>
+    <string name="error_command">El reloj rechazó el comando. Inténtalo de nuevo.</string>
+    <string name="error_connection">Conexión perdida. Acércate al reloj e inténtalo de nuevo.</string>
+    <string name="error_permission">Se revocó el permiso de Bluetooth.</string>
+    <string name="error_scan_failed">Error en la búsqueda (código %1$d)</string>
+</resources>
