@@ -37,7 +37,6 @@
     <string name="scan_idle_hint">Tap “Search” to find the clock.</string>
 
     <!-- Connection -->
-    <string name="status_connecting">Connecting to the clock…</string>
     <string name="status_connected">Connected</string>
     <string name="status_failed">Connection failed</string>
     <string name="status_rejected">Connection refused</string>
@@ -137,12 +136,10 @@
     <string name="error_ringtone_empty">The audio file is empty.</string>
 
     <!-- Dashboard -->
+    <string name="status_connecting_short">Connecting…</string>
     <string name="status_idle_short">Paused</string>
     <string name="dashboard_temperature">Temperature</string>
     <string name="dashboard_humidity">Humidity</string>
-    <string name="dashboard_celsius">%1$.1f°C</string>
-    <string name="dashboard_fahrenheit">%1$.1f°F</string>
-    <string name="dashboard_percent">%1$.0f%%</string>
     <string name="dashboard_battery">Battery %1$d%%</string>
     <string name="dashboard_no_readings">No readings yet: they arrive when the clock is nearby.</string>
     <string name="dashboard_updated">Updated at %1$s</string>

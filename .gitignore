@@ -8,3 +8,8 @@ local.properties
 captures/
 *.apk
 *.aab
+
+# Firma della release: mai nel repository
+keystore.properties
+*.jks
+*.keystore

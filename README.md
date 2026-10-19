@@ -36,7 +36,7 @@ Dopo il reset Mi Home non la vedrà più (è proprio lo scopo).
 
 Scarica l'APK dall'ultima build nella scheda **Actions** del repository (artifact `opencgd1-apk`) e installalo sul telefono. Requisiti: Android 8.0 (API 26) o successivo, Bluetooth LE.
 
-L'APK "release" è firmato con la chiave di debug: va bene per uso personale, non per il Play Store.
+Le release sono firmate sempre con la stessa chiave, quindi ogni versione si installa sopra la precedente. Le versioni fino alla 0.5.0 erano firmate con una chiave di debug diversa a ogni build: per passare alla 0.5.1 va disinstallata una sola volta la versione vecchia.
 
 ## Suonerie
 
@@ -65,6 +65,8 @@ Per aggiungere una suoneria all'app: `python3 tools/convert_ringtone.py input.og
 ./gradlew connectedDebugAndroidTest   # test su dispositivo/emulatore (decodifica audio)
 adb install app/build/outputs/apk/release/app-release.apk
 ```
+
+**Firma**: la chiave della release non è nel repository. In CI arriva dai secret `OPENCGD1_KEYSTORE_BASE64`, `OPENCGD1_STORE_PASSWORD`, `OPENCGD1_KEY_ALIAS` e `OPENCGD1_KEY_PASSWORD`; in locale da un file `keystore.properties` (ignorato da git) con `storeFile`, `storePassword`, `keyAlias` e `keyPassword`. Senza chiave la release viene firmata con quella di debug.
 
 **Senza installare niente**: ogni push su `main` avvia il workflow `.github/workflows/build.yml`, che esegue test e lint e pubblica l'APK come artifact.
 

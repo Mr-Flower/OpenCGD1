@@ -30,7 +30,6 @@
     <string name="scan_idle_hint">Premi «Cerca» per trovare la sveglia.</string>
 
     <!-- Connection -->
-    <string name="status_connecting">Collegamento alla sveglia…</string>
     <string name="status_connected">Collegata</string>
     <string name="status_failed">Collegamento non riuscito</string>
     <string name="status_rejected">Collegamento rifiutato</string>
@@ -130,12 +129,10 @@
     <string name="error_ringtone_empty">Il file audio è vuoto.</string>
 
     <!-- Dashboard -->
+    <string name="status_connecting_short">Collegamento…</string>
     <string name="status_idle_short">In pausa</string>
     <string name="dashboard_temperature">Temperatura</string>
     <string name="dashboard_humidity">Umidità</string>
-    <string name="dashboard_celsius">%1$.1f°C</string>
-    <string name="dashboard_fahrenheit">%1$.1f°F</string>
-    <string name="dashboard_percent">%1$.0f%%</string>
     <string name="dashboard_battery">Batteria %1$d%%</string>
     <string name="dashboard_no_readings">Nessuna lettura ancora: arriva quando la sveglia è vicina.</string>
     <string name="dashboard_updated">Aggiornato alle %1$s</string>

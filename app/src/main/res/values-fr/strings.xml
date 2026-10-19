@@ -30,7 +30,6 @@
     <string name="scan_idle_hint">Touchez « Rechercher » pour trouver le réveil.</string>
 
     <!-- Connection -->
-    <string name="status_connecting">Connexion au réveil…</string>
     <string name="status_connected">Connecté</string>
     <string name="status_failed">Échec de la connexion</string>
     <string name="status_rejected">Connexion refusée</string>
@@ -130,12 +129,10 @@
     <string name="error_ringtone_empty">Le fichier audio est vide.</string>
 
     <!-- Dashboard -->
+    <string name="status_connecting_short">Connexion…</string>
     <string name="status_idle_short">En pause</string>
     <string name="dashboard_temperature">Température</string>
     <string name="dashboard_humidity">Humidité</string>
-    <string name="dashboard_celsius">%1$.1f °C</string>
-    <string name="dashboard_fahrenheit">%1$.1f °F</string>
-    <string name="dashboard_percent">%1$.0f %%</string>
     <string name="dashboard_battery">Batterie %1$d %%</string>
     <string name="dashboard_no_readings">Aucune mesure pour l\'instant : elles arrivent quand le réveil est à proximité.</string>
     <string name="dashboard_updated">Mis à jour à %1$s</string>

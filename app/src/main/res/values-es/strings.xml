@@ -30,7 +30,6 @@
     <string name="scan_idle_hint">Toca «Buscar» para encontrar el reloj.</string>
 
     <!-- Connection -->
-    <string name="status_connecting">Conectando con el reloj…</string>
     <string name="status_connected">Conectado</string>
     <string name="status_failed">Error de conexión</string>
     <string name="status_rejected">Conexión rechazada</string>
@@ -130,12 +129,10 @@
     <string name="error_ringtone_empty">El archivo de audio está vacío.</string>
 
     <!-- Dashboard -->
+    <string name="status_connecting_short">Conectando…</string>
     <string name="status_idle_short">En pausa</string>
     <string name="dashboard_temperature">Temperatura</string>
     <string name="dashboard_humidity">Humedad</string>
-    <string name="dashboard_celsius">%1$.1f °C</string>
-    <string name="dashboard_fahrenheit">%1$.1f °F</string>
-    <string name="dashboard_percent">%1$.0f %%</string>
     <string name="dashboard_battery">Batería %1$d %%</string>
     <string name="dashboard_no_readings">Aún no hay lecturas: llegan cuando el reloj está cerca.</string>
     <string name="dashboard_updated">Actualizado a las %1$s</string>
