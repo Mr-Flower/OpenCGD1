@@ -41,8 +41,8 @@ fun daysLabel(days: Set<Weekday>): String = when {
 
 @Composable
 @ReadOnlyComposable
-fun sensorLabel(sensor: SensorData?, battery: Int?): String = listOfNotNull(
-    sensor?.temperature?.let { stringResource(R.string.sensor_temperature, it) },
-    sensor?.humidity?.let { stringResource(R.string.sensor_humidity, it) },
-    (battery ?: sensor?.battery)?.let { stringResource(R.string.sensor_battery, it) },
+fun sensorLabel(sensor: SensorData): String = listOfNotNull(
+    sensor.temperature?.let { stringResource(R.string.sensor_temperature, it) },
+    sensor.humidity?.let { stringResource(R.string.sensor_humidity, it) },
+    sensor.battery?.let { stringResource(R.string.sensor_battery, it) },
 ).joinToString(" · ")

@@ -6,6 +6,8 @@ import java.time.LocalTime
 /** Codifica/decodifica pura del protocollo CGD1. Niente BLE, niente coroutine. */
 object Codec {
     private const val RECORD_LENGTH = 5
+    private const val MAX_HOUR = 23
+    private const val MAX_MINUTE = 59
     private val EMPTY_RECORD = hex("ffffffffff")
     private const val SETTINGS_LEN = 20
 
@@ -20,8 +22,8 @@ object Codec {
     private const val TZ_SIGN_POSITIVE = 1
     private const val BRIGHTNESS_STEP = 10
 
-    // Advertisement 0xfdcd: frame, modello (0x0c), MAC (6), 2 ignoti, temp int16 LE,
-    // umidità uint16 LE, 2 ignoti, batteria. Scala /10.
+    // Advertisement 0xfdcd: frame, modello (0x0c), MAC (6), poi blocchi tipo/lunghezza/valore.
+    // Tipo 01: temperatura int16 LE e umidità uint16 LE, scala /10. Tipo 02: batteria.
     private const val ADV_MODEL = 0x0C
     private const val ADV_TLV_START = 8
     private const val ADV_TYPE_TEMP_HUMIDITY = 0x01
@@ -59,6 +61,9 @@ object Codec {
             throw Cgd1CommandException("alarm record must be $RECORD_LENGTH bytes, got ${record.size}")
         }
         if (record.contentEquals(EMPTY_RECORD)) return Alarm.EMPTY
+        // Un orario impossibile romperebbe il calcolo della prossima sveglia e il selettore dell'ora:
+        // si tratta lo slot come vuoto, così si può riscrivere.
+        if (record.u(1) > MAX_HOUR || record.u(2) > MAX_MINUTE) return Alarm.EMPTY
         val mask = record.u(3)
         return Alarm(
             enabled = record.u(0) != 0,

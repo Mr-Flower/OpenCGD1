@@ -47,6 +47,7 @@ class SettingsScreenshotTest {
                     DeviceSettingsCard(
                         settings = previewSettings,
                         currentRingtone = null,
+                        settingsRevision = 0,
                         onUpdate = {},
                         onVolumeChange = {},
                         onOpenRingtones = {},

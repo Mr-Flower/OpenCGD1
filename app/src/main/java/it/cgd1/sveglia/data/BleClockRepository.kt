@@ -18,8 +18,6 @@ import it.cgd1.sveglia.ble.FoundClock
 import it.cgd1.sveglia.ble.ScanFailedException
 import it.cgd1.sveglia.di.DefaultDispatcher
 import it.cgd1.sveglia.protocol.Alarm
-import it.cgd1.sveglia.protocol.Cgd1AuthException
-import it.cgd1.sveglia.protocol.Cgd1CommandException
 import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.protocol.SensorData
 import kotlinx.coroutines.CancellationException
@@ -111,9 +109,9 @@ private class BleClockSession(
     override val liveSensor: Flow<SensorData> = client.sensor.filter { it.isPlausible() }
 
     override suspend fun load(): Result<ClockSnapshot> = call {
-        client.connect()
+        val settings = client.connect() ?: client.readSettings()
         ClockSnapshot(
-            settings = client.readSettings(),
+            settings = settings,
             alarms = client.readAlarms(),
             firmware = optional { client.readFirmware() },
         )
@@ -157,11 +155,4 @@ private class BleClockSession(
 
     private fun SensorData.isPlausible(): Boolean =
         (temperature == null || temperature in -30.0..60.0) && (humidity == null || humidity in 0.0..100.0)
-
-    private fun Exception.toClockError(): ClockError = when (this) {
-        is Cgd1AuthException -> ClockError.AuthRejected(this)
-        is Cgd1CommandException -> ClockError.Command(this)
-        is SecurityException -> ClockError.PermissionMissing(this)
-        else -> ClockError.Connection(this)
-    }
 }

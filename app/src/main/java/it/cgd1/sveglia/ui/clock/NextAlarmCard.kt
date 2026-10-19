@@ -9,6 +9,8 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -19,8 +21,11 @@ import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.Codec
 import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.ui.formatOffset
+import kotlinx.coroutines.delay
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+private const val MINUTE_MS = 60_000L
 
 @Composable
 fun NextAlarmCard(
@@ -30,8 +35,15 @@ fun NextAlarmCard(
     onSyncTime: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val next = remember(alarms, settings.alarmsEnabled) {
-        if (settings.alarmsEnabled) Codec.nextAlarm(alarms, LocalDateTime.now()) else null
+    // Ricalcolata a ogni minuto: dopo che una sveglia ha suonato la "prossima" cambia anche senza nuovi dati.
+    val now by produceState(LocalDateTime.now()) {
+        while (true) {
+            delay(MINUTE_MS - System.currentTimeMillis() % MINUTE_MS)
+            value = LocalDateTime.now()
+        }
+    }
+    val next = remember(alarms, settings.alarmsEnabled, now) {
+        if (settings.alarmsEnabled) Codec.nextAlarm(alarms, now) else null
     }
     val locale = LocalConfiguration.current.locales[0]
     val pattern = stringResource(R.string.next_alarm_pattern)

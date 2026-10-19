@@ -9,6 +9,7 @@ import it.cgd1.sveglia.data.ClockError
 import it.cgd1.sveglia.data.ClockRepository
 import it.cgd1.sveglia.data.ClockSession
 import it.cgd1.sveglia.data.SavedClock
+import it.cgd1.sveglia.data.TimeSource
 import it.cgd1.sveglia.data.ringtone.CustomSlots
 import it.cgd1.sveglia.data.ringtone.RingtoneError
 import it.cgd1.sveglia.data.ringtone.RingtoneOption
@@ -47,9 +48,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import javax.inject.Inject
 
 private const val SCAN_TIMEOUT_MS = 30_000L
@@ -62,6 +61,7 @@ class MainViewModel @Inject constructor(
     private val repository: ClockRepository,
     private val ringtones: RingtoneRepository,
     private val player: RingtonePlayer,
+    private val time: TimeSource,
 ) : ViewModel(), ScanActions, ClockActions, RingtoneActions {
 
     private val state = MutableStateFlow(
@@ -128,7 +128,7 @@ class MainViewModel @Inject constructor(
         session = newSession
         sessionScope = scope
         newSession.liveSensor
-            .onEach { sensor -> state.update { it.copy(readings = it.readings.withLive(sensor, System.currentTimeMillis())) } }
+            .onEach { sensor -> state.update { it.copy(readings = it.readings.withLive(sensor, nowMillis())) } }
             .launchIn(scope)
         newSession.isConnected
             .onEach { connected ->
@@ -146,8 +146,8 @@ class MainViewModel @Inject constructor(
         state.update {
             it.copy(
                 openClock = clock, connection = ConnectionState.Connecting, isBusy = false,
-                settings = null, alarms = emptyList(), firmware = null,
-                readings = sensor?.let { s -> ClockReadings().withAdvertisement(s, System.currentTimeMillis()) } ?: ClockReadings(),
+                settings = null, alarms = emptyList(), firmware = null, testAlarm = null, ringtoneUploadProgress = null,
+                readings = sensor?.let { s -> ClockReadings().withAdvertisement(s, nowMillis()) } ?: ClockReadings(),
             )
         }
         load(syncClock = true, readAdvertisement = sensor?.battery == null)
@@ -156,7 +156,10 @@ class MainViewModel @Inject constructor(
     override fun onCloseClock() {
         releaseSession()
         state.update {
-            it.copy(openClock = null, connection = ConnectionState.Idle, settings = null, alarms = emptyList(), isBusy = false)
+            it.copy(
+                openClock = null, connection = ConnectionState.Idle, settings = null, alarms = emptyList(), isBusy = false,
+                testAlarm = null, ringtoneUploadProgress = null,
+            )
         }
     }
 
@@ -195,7 +198,7 @@ class MainViewModel @Inject constructor(
                 .firstOrNull { it.address == address && it.sensor != null }
         }
         found?.sensor?.let { sensor ->
-            update { it.copy(readings = it.readings.withAdvertisement(sensor, System.currentTimeMillis())) }
+            update { it.copy(readings = it.readings.withAdvertisement(sensor, nowMillis())) }
         }
     }
 
@@ -205,7 +208,7 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun syncTime(s: ClockSession, current: DeviceSettings, update: StateUpdater) {
-        val offset = currentOffsetMinutes()
+        val offset = time.zone().rules.getOffset(time.now()).totalSeconds / 60
         if (current.tzOffsetMinutes != offset) {
             val updated = current.copy(tzOffsetMinutes = offset)
             s.writeSettings(updated).getOrThrow()
@@ -249,11 +252,15 @@ class MainViewModel @Inject constructor(
     }
 
     override fun onUpdateSettings(transform: (DeviceSettings) -> DeviceSettings) = op { s, update ->
-        val current = state.value.settings ?: return@op
-        val next = transform(current)
-        if (next == current) return@op
-        s.writeSettings(next).getOrThrow()
-        update { it.copy(settings = next) }
+        try {
+            val current = state.value.settings ?: return@op
+            val next = transform(current)
+            if (next == current) return@op
+            s.writeSettings(next).getOrThrow()
+            update { it.copy(settings = next) }
+        } finally {
+            update { it.copy(settingsRevision = it.settingsRevision + 1) }
+        }
     }
 
     override fun onLoadOriginalRingtones() {
@@ -280,35 +287,45 @@ class MainViewModel @Inject constructor(
             showMessage(UiText(R.string.message_slots_full))
             return@op
         }
-        val now = LocalDateTime.now()
+        val now = LocalDateTime.ofInstant(time.now(), time.zone())
         // Almeno 30 secondi di margine: il tempo di scriverla e di avvicinarsi alla sveglia.
         val fireAt = now.plusMinutes(if (now.second < TEST_ALARM_MARGIN_S) 1 else 2).withSecond(0).withNano(0)
         val alarm = Alarm(enabled = true, hour = fireAt.hour, minute = fireAt.minute, days = emptySet(), snooze = false)
         s.writeAlarm(slot, alarm).getOrThrow()
         update { it.withAlarm(slot, alarm).copy(testAlarm = alarm) }
         showMessage(UiText(R.string.message_test_alarm_set, formatTime(alarm.hour, alarm.minute)))
-        sessionScope?.launch {
-            delay(Duration.between(LocalDateTime.now(), fireAt).toMillis() + TEST_ALARM_RING_MS)
-            removeTestAlarm(slot, alarm)
+        val address = state.value.openClock?.address
+        // Fuori dallo scope della sessione: se la sveglia si scollega per inattività e poi si riapre,
+        // la pulizia deve avvenire lo stesso. Il controllo sull'indirizzo evita di toccare un'altra sveglia.
+        viewModelScope.launch {
+            delay(Duration.between(now, fireAt).toMillis() + TEST_ALARM_RING_MS)
+            if (state.value.openClock?.address == address) removeTestAlarm(slot, alarm)
         }
     }
 
     private fun removeTestAlarm(slot: Int, alarm: Alarm) = op { s, update ->
-        if (state.value.alarms.getOrNull(slot) == alarm) {
-            s.writeAlarm(slot, Alarm.EMPTY).getOrThrow()
-            update { it.withAlarm(slot, Alarm.EMPTY) }
+        try {
+            if (state.value.alarms.getOrNull(slot) == alarm) {
+                s.writeAlarm(slot, Alarm.EMPTY).getOrThrow()
+                update { it.withAlarm(slot, Alarm.EMPTY) }
+            }
+        } finally {
+            update { it.copy(testAlarm = null) }
         }
-        update { it.copy(testAlarm = null) }
     }
 
     override fun onVolumeChange(volume: Int) = op { s, update ->
-        val current = state.value.settings ?: return@op
-        if (current.volume != volume) {
-            val next = current.copy(volume = volume)
-            s.writeSettings(next).getOrThrow()
-            update { it.copy(settings = next) }
+        try {
+            val current = state.value.settings ?: return@op
+            if (current.volume != volume) {
+                val next = current.copy(volume = volume)
+                s.writeSettings(next).getOrThrow()
+                update { it.copy(settings = next) }
+            }
+            s.previewVolume(volume).getOrThrow()
+        } finally {
+            update { it.copy(settingsRevision = it.settingsRevision + 1) }
         }
-        s.previewVolume(volume).getOrThrow()
     }
 
     override fun onPreviewRingtone(id: String) {
@@ -332,8 +349,11 @@ class MainViewModel @Inject constructor(
             }
             state.update { it.copy(previewingRingtoneId = id) }
             try {
-                player.play(pcm)
-                delay(pcm.size * 1000L / AudioUpload.SAMPLE_RATE)
+                if (player.play(pcm)) {
+                    delay(pcm.size * 1000L / AudioUpload.SAMPLE_RATE)
+                } else {
+                    showMessage(UiText(R.string.error_preview))
+                }
             } finally {
                 player.stop()
                 state.update { if (it.previewingRingtoneId == id) it.copy(previewingRingtoneId = null) else it }
@@ -434,6 +454,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun nowMillis(): Long = time.now().toEpochMilli()
+
     private fun showMessage(text: UiText) {
         _effects.trySend(MainEffect.ShowMessage(text))
     }
@@ -445,8 +467,6 @@ class MainViewModel @Inject constructor(
 }
 
 private typealias StateUpdater = ((MainUiState) -> MainUiState) -> Unit
-
-private fun currentOffsetMinutes(): Int = ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds / 60
 
 private fun List<FoundClock>.upsert(found: FoundClock): List<FoundClock> {
     val index = indexOfFirst { it.address == found.address }

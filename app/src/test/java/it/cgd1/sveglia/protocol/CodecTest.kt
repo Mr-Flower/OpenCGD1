@@ -44,6 +44,11 @@ class CodecTest {
 
     @Test fun emptyRecordDecodesToEmptyAlarm() = assertTrue(Codec.decodeAlarm(hex("ffffffffff")).isEmpty)
 
+    @Test fun impossibleTimeDecodesAsEmptySlot() {
+        assertTrue(Codec.decodeAlarm(hex("0118001500")).isEmpty)
+        assertTrue(Codec.decodeAlarm(hex("01073c1500")).isEmpty)
+    }
+
     @Test fun encodeEmptyAlarmIsAllFf() {
         val out = Codec.encodeAlarm(9, Alarm.EMPTY)
         assertArrayEquals(hex("ffffffffff"), out.copyOfRange(3, out.size))

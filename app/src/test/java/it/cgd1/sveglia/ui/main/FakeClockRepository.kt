@@ -6,6 +6,7 @@ import it.cgd1.sveglia.data.ClockRepository
 import it.cgd1.sveglia.data.ClockSession
 import it.cgd1.sveglia.data.ClockSnapshot
 import it.cgd1.sveglia.data.SavedClock
+import it.cgd1.sveglia.data.TimeSource
 import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
 import it.cgd1.sveglia.data.ringtone.CustomRingtone
 import it.cgd1.sveglia.data.ringtone.OriginalRingtone
@@ -21,6 +22,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
+import java.time.ZoneId
 
 class FakeClockRepository(private val snapshot: ClockSnapshot) : ClockRepository {
     override val isBluetoothAvailable = true
@@ -90,11 +93,18 @@ class FakeRingtoneRepository(override val builtIns: List<BuiltInRingtone>) : Rin
     override suspend fun convert(uri: String): Result<CustomRingtone> = converted
 }
 
+/** Sempre le 10:00:10 dell'1 luglio 2026 a Roma (UTC+2). */
+class FakeTimeSource : TimeSource {
+    override fun now(): Instant = Instant.parse("2026-07-01T08:00:10Z")
+    override fun zone(): ZoneId = ZoneId.of("Europe/Rome")
+}
+
 class FakeRingtonePlayer : RingtonePlayer {
     var playing: ByteArray? = null
 
-    override fun play(pcm: ByteArray) {
+    override fun play(pcm: ByteArray): Boolean {
         playing = pcm
+        return true
     }
 
     override fun stop() {

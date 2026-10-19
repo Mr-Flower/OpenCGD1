@@ -80,9 +80,11 @@ fun SliderRow(
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     valueLabel: (Int) -> String = { it.toString() },
+    resetKey: Any? = null,
 ) {
-    // Valore locale durante il trascinamento: si scrive sulla sveglia solo al rilascio.
-    var current by remember(value) { mutableFloatStateOf(value.toFloat()) }
+    // Valore locale durante il trascinamento: si scrive sulla sveglia solo al rilascio. [resetKey] cambia
+    // anche quando la scrittura fallisce, così lo slider torna al valore vero invece di restare spostato.
+    var current by remember(value, resetKey) { mutableFloatStateOf(value.toFloat()) }
     val shown = valueLabel(current.roundToInt())
     Column(modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {

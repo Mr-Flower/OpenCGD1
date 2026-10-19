@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
@@ -31,10 +32,15 @@ fun AlarmCard(alarm: Alarm, onToggle: (Boolean) -> Unit, onClick: () -> Unit, mo
                 Text(details, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             val stateText = stringResource(if (alarm.enabled) R.string.alarm_on else R.string.alarm_off)
+            // Senza l'ora nella descrizione TalkBack leggerebbe solo "interruttore", uguale per ogni sveglia.
+            val switchLabel = stringResource(R.string.alarm_switch_label, formatTime(alarm.hour, alarm.minute))
             Switch(
                 checked = alarm.enabled,
                 onCheckedChange = onToggle,
-                modifier = Modifier.semantics { stateDescription = stateText },
+                modifier = Modifier.semantics {
+                    contentDescription = switchLabel
+                    stateDescription = stateText
+                },
             )
         }
     }

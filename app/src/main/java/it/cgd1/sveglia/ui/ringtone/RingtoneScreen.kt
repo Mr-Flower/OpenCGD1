@@ -67,6 +67,7 @@ import it.cgd1.sveglia.data.ringtone.RingtoneOption
 import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.toHex
 import it.cgd1.sveglia.ui.components.SectionHeader
+import it.cgd1.sveglia.ui.components.contentWidth
 import it.cgd1.sveglia.ui.formatTime
 import it.cgd1.sveglia.ui.main.CUSTOM_RINGTONE_PREVIEW_ID
 import it.cgd1.sveglia.ui.main.CustomRingtoneInfo
@@ -94,6 +95,7 @@ fun RingtoneScreen(
     val uploading = state.ringtoneUploadProgress != null
     val canChange = !state.isBusy && state.settings != null
     val current = state.currentRingtone
+    val currentHex = state.settings?.ringtoneSignature?.toHex()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -151,7 +153,8 @@ fun RingtoneScreen(
                     RingtoneRow(
                         ringtone = ringtone,
                         subtitle = stringResource(R.string.ringtone_original_source),
-                        state = state,
+                        selected = currentHex == ringtone.signatureHex,
+                        isPreviewing = state.previewingRingtoneId == ringtone.id,
                         enabled = canChange && !uploading,
                         actions = actions,
                         modifier = Modifier.contentWidth(),
@@ -183,7 +186,8 @@ fun RingtoneScreen(
                 RingtoneRow(
                     ringtone = ringtone,
                     subtitle = stringResource(R.string.ringtone_attribution, ringtone.author, ringtone.license),
-                    state = state,
+                    selected = currentHex == ringtone.signatureHex,
+                    isPreviewing = state.previewingRingtoneId == ringtone.id,
                     enabled = canChange && !uploading,
                     actions = actions,
                     modifier = Modifier.contentWidth(),
@@ -203,7 +207,6 @@ fun RingtoneScreen(
     }
 }
 
-private fun Modifier.contentWidth(): Modifier = widthIn(max = 640.dp).fillMaxWidth()
 
 @Composable
 private fun CurrentRingtoneCard(
@@ -297,7 +300,7 @@ private fun CustomRingtoneCard(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    PreviewButton(isPreviewing, onPreview = actions::onPreviewCustomRingtone, onStop = actions::onStopPreview)
+                    PreviewButton(custom.name, isPreviewing, onPreview = actions::onPreviewCustomRingtone, onStop = actions::onStopPreview)
                 }
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
@@ -316,12 +319,12 @@ private fun CustomRingtoneCard(
 private fun RingtoneRow(
     ringtone: RingtoneOption,
     subtitle: String,
-    state: MainUiState,
+    selected: Boolean,
+    isPreviewing: Boolean,
     enabled: Boolean,
     actions: RingtoneActions,
     modifier: Modifier = Modifier,
 ) {
-    val selected = state.settings?.ringtoneSignature?.toHex() == ringtone.signatureHex
     OutlinedCard(modifier) {
         ListItem(
             leadingContent = { RadioButton(selected = selected, onClick = null, enabled = enabled) },
@@ -329,7 +332,8 @@ private fun RingtoneRow(
             supportingContent = { Text(subtitle) },
             trailingContent = {
                 PreviewButton(
-                    isPreviewing = state.previewingRingtoneId == ringtone.id,
+                    name = ringtone.name,
+                    isPreviewing = isPreviewing,
                     onPreview = { actions.onPreviewRingtone(ringtone.id) },
                     onStop = actions::onStopPreview,
                 )
@@ -346,14 +350,14 @@ private fun RingtoneRow(
 }
 
 @Composable
-private fun PreviewButton(isPreviewing: Boolean, onPreview: () -> Unit, onStop: () -> Unit) {
+private fun PreviewButton(name: String, isPreviewing: Boolean, onPreview: () -> Unit, onStop: () -> Unit) {
     if (isPreviewing) {
         IconButton(onClick = onStop) {
-            Icon(painterResource(R.drawable.ic_stop), contentDescription = stringResource(R.string.ringtone_stop_preview))
+            Icon(painterResource(R.drawable.ic_stop), contentDescription = stringResource(R.string.ringtone_stop_preview, name))
         }
     } else {
         IconButton(onClick = onPreview) {
-            Icon(Icons.Filled.PlayArrow, contentDescription = stringResource(R.string.ringtone_preview))
+            Icon(Icons.Filled.PlayArrow, contentDescription = stringResource(R.string.ringtone_preview, name))
         }
     }
 }
@@ -385,7 +389,7 @@ private fun RingtoneScreenPreview() {
         RingtoneScreen(
             state = MainUiState(
                 builtInRingtones = BUILT_IN_RINGTONES,
-                previewingRingtoneId = "bliss",
+                previewingRingtoneId = "argon",
                 ringtoneUploadProgress = 0.4f,
                 customRingtone = CustomRingtoneInfo("La mia sveglia", 12f),
             ),

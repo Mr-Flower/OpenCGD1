@@ -40,6 +40,8 @@ data class MainUiState(
     val originalRingtones: OriginalRingtonesState = OriginalRingtonesState.NotLoaded,
     /** Sveglia temporanea impostata per ascoltare la suoneria; l'app la cancella dopo che ha suonato. */
     val testAlarm: Alarm? = null,
+    /** Cresce a ogni scrittura di impostazioni conclusa, riuscita o no: gli slider la usano per riallinearsi. */
+    val settingsRevision: Int = 0,
 ) {
     val currentRingtone: CurrentRingtone?
         get() = settings?.let {

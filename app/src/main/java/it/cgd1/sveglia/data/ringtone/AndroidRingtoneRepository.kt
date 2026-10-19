@@ -31,7 +31,12 @@ class AndroidRingtoneRepository @Inject constructor(
 
     override suspend fun loadPcm(ringtone: RingtoneOption): Result<ByteArray> = when (ringtone) {
         is BuiltInRingtone -> withContext(io) {
-            Result.success(context.resources.openRawResource(ringtone.rawRes).use { it.readBytes() })
+            try {
+                Result.success(context.resources.openRawResource(ringtone.rawRes).use { it.readBytes() })
+            } catch (e: Exception) {
+                Log.w(TAG, "bundled ringtone unreadable", e)
+                Result.failure(RingtoneError.Unsupported(e))
+            }
         }
         is OriginalRingtone -> network { qingping.pcm(ringtone) }
     }
@@ -53,6 +58,8 @@ class AndroidRingtoneRepository @Inject constructor(
             val decoded = decodeAudio(context, parsed)
             if (decoded.samples.isEmpty()) return@withContext Result.failure(RingtoneError.Empty())
             val pcm = PcmProcessing.toCgd1Pcm(decoded.samples, decoded.sampleRate)
+            // Un file brevissimo può non lasciare nemmeno un campione dopo il ricampionamento a 8 kHz.
+            if (pcm.isEmpty()) return@withContext Result.failure(RingtoneError.Empty())
             Result.success(CustomRingtone(displayName(parsed), pcm))
         } catch (e: CancellationException) {
             throw e

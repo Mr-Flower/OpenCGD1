@@ -1,121 +1,183 @@
+<div align="center">
+
+<img src="docs/icon.svg" width="96" alt="OpenCGD1 icon">
+
 # OpenCGD1
 
-App Android open source per comandare la sveglia Bluetooth **Qingping CGD1** senza Mi Home né Qingping+. Funziona in locale via Bluetooth LE: niente account, niente cloud. Internet serve solo, a richiesta, per scaricare le suonerie originali dal server Qingping.
+**Your Qingping CGD1 Bluetooth alarm clock, without Mi Home.**
 
-È un porting in Kotlin della libreria Python [qingping-cgd1](https://github.com/rjocoleman/qingping-cgd1) di Robert Coleman (MIT), a sua volta basata sul reverse engineering di clOwOck.
+An open source Android app that controls the clock locally over Bluetooth: no account, no cloud.
 
-## Funzioni
+[![Build](https://github.com/Mr-Flower/OpenCGD1/actions/workflows/build.yml/badge.svg)](https://github.com/Mr-Flower/OpenCGD1/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/Mr-Flower/OpenCGD1?label=release)](https://github.com/Mr-Flower/OpenCGD1/releases/latest)
+![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**Sveglia**
-- Trova la sveglia da sola e, una volta collegata, apre una **dashboard** con temperatura e umidità in grande (aggiornate in tempo reale), batteria e ora dell'ultima lettura
-- Batteria letta dall'advertisement Qingping: la caratteristica GATT standard 0x2A19 della CGD1 risponde sempre 99% e non viene usata
-- Legge e scrive i 16 slot sveglia: ora, giorni della settimana, snooze, attiva/disattiva
-- Interruttore generale delle sveglie e "prossima sveglia"
-- Sincronizza ora **e fuso** con il telefono, a ogni collegamento e con il pulsante dedicato
-- Impostazioni del dispositivo: volume, 12/24 h, °C/°F, lingua del display, luminosità giorno/notte, durata della luce schermo, modalità notte con orari
-- **Suoneria**: le 9 originali Qingping (scaricate dal loro server), 18 suoni di allarme AOSP inclusi o un file audio tuo. Anteprima sul telefono, "Prova con una sveglia tra un minuto" per sentirla dall'altoparlante vero (l'app imposta una sveglia temporanea e poi la cancella), barra di avanzamento durante il caricamento
+[**Download the latest version**](https://github.com/Mr-Flower/OpenCGD1/releases/latest)
 
-**App**
-- Guida di benvenuto al primo avvio (come liberare la sveglia da Mi Home, permessi): non si va avanti senza il permesso Bluetooth, e se è stato negato porta alle impostazioni di sistema. Si può rivedere dalle Impostazioni
-- Tema e lingua scelti da menu a tendina; slider in stile Impostazioni di Android
-- Material 3 con palette teal propria; i colori **Material You** presi dallo sfondo si possono attivare nelle impostazioni (Android 12+)
-- Font **Inter**, simile a MiSans delle app Xiaomi; icona "clock" di Lucide
-- Tema **Segui il sistema**, **Chiaro**, **Scuro** o **AMOLED** (nero puro)
-- Lingua **English**, **Español**, **Français**, **Italiano**, oppure quella del dispositivo (predefinita). Su Android 13+ la lingua si può cambiare anche da *Impostazioni → App → OpenCGD1 → Lingua*
+</div>
 
-## Primo collegamento
+<p align="center">
+  <img src="docs/screenshots/clock.png" width="200" alt="Dashboard with temperature, humidity and alarms">
+  <img src="docs/screenshots/ringtone.png" width="200" alt="Ringtone picker">
+  <img src="docs/screenshots/clock_amoled.png" width="200" alt="AMOLED theme">
+</p>
 
-La sveglia accetta un solo "proprietario". Se è associata a Mi Home o Qingping+ rifiuta l'app:
+## Features
 
-1. Rimuovila da Mi Home, **oppure** tieni premuto il pulsante finché l'icona Bluetooth lampeggia
-2. Apri l'app e segui la guida di benvenuto: la ricerca parte da sola, tocca la sveglia
-3. Al primo collegamento la sveglia si lega al token dell'app e da lì in poi funziona sempre
+| | |
+|---|---|
+| 🌡️ **Dashboard** | Live temperature and humidity, battery level, connection status |
+| ⏰ **Alarms** | All 16 slots: time, weekdays, snooze, on/off, master switch and next alarm |
+| 🕒 **Exact time** | Time and time zone synced from the phone on every connection, aligned to the second |
+| 🔔 **Ringtones** | The 9 Qingping originals, 18 bundled alarm sounds or your own audio file. Try it with an alarm one minute from now |
+| ⚙️ **Clock settings** | Volume with a test beep, 12/24 h, °C/°F, display language, day/night brightness, screen light, night mode |
+| 🎨 **Look** | Material 3, light/dark/AMOLED themes, optional Material You colors |
+| 🌍 **Languages** | English, Español, Français, Italiano, or the phone's language |
 
-Dopo il reset Mi Home non la vedrà più (è proprio lo scopo).
+## Installation
 
-## Installazione
+1. Download `OpenCGD1-x.y.z.apk` from the [latest release](https://github.com/Mr-Flower/OpenCGD1/releases/latest) and open it on your phone.
+2. If Android asks, allow installs from that source. Play Protect may flag the app as unknown: that's normal for apps outside the Play Store.
 
-Scarica l'APK dall'ultima build nella scheda **Actions** del repository (artifact `opencgd1-apk`) e installalo sul telefono. Requisiti: Android 8.0 (API 26) o successivo, Bluetooth LE.
+Every new version installs over the previous one. To get updates automatically, add this repository to [Obtainium](https://github.com/ImranR98/Obtainium).
 
-Le release sono firmate sempre con la stessa chiave, quindi ogni versione si installa sopra la precedente. Le versioni fino alla 0.5.0 erano firmate con una chiave di debug diversa a ogni build: per passare alla 0.5.1 va disinstallata una sola volta la versione vecchia.
+> Versions up to 0.5.0 were signed with a different key: if you are coming from one of them, uninstall it once before installing the new one.
 
-## Suonerie
+## First connection
 
-La sveglia conserva una sola suoneria: sceglierne una vuol dire caricarla via Bluetooth (fino a 96 KB, qualche decina di secondi), con il telefono vicino.
+<img src="docs/screenshots/welcome.png" width="180" align="right" alt="Welcome guide">
 
-- **Originali Qingping**: le 9 suonerie dell'app ufficiale, scaricate a richiesta dallo stesso server che usa l'app Qingping (`qingplus.cleargrass.com/raw/rings`) e tenute in cache. Non sono nel repository né nell'APK
-- **Incluse**: 18 suoni di allarme dell'Android Open Source Project (Apache 2.0), dettagli in [`third_party/aosp-sounds`](third_party/aosp-sounds/README.md)
-- **Personalizzata**: qualsiasi file audio che Android sa leggere
+The clock accepts **only one app at a time**. If you have used it with Mi Home or Qingping+, release it first:
 
-Le incluse e i file personali passano dallo stesso trattamento, pensato per l'altoparlante minuscolo della sveglia: via i bassi sotto 300 Hz (non si sentono e consumano solo potenza), filtro anti-aliasing a 3,5 kHz, compressione per alzare il volume percepito, picco normalizzato e volume medio limitato a quello della suoneria originale più forte. Taglio a 12 secondi con dissolvenza.
+1. remove it from Mi Home or Qingping+, **or** hold the clock's button until the Bluetooth icon blinks;
+2. open OpenCGD1 and follow the guide: grant the Bluetooth permission and the search starts by itself;
+3. tap your clock. On the first connection it binds to the app and keeps working from then on.
 
-Per aggiungere una suoneria all'app: `python3 tools/convert_ringtone.py input.ogg app/src/main/res/raw/ringtone_nome.pcm`, poi una voce in `BuiltInRingtones.kt` con una firma nuova.
+After that Mi Home no longer sees it, which is the whole point.
 
-## Domande frequenti
+<br clear="right">
 
-**Si può aggiornare il firmware della sveglia dall'app?** No. Il protocollo di aggiornamento della CGD1 non è documentato da nessuno, i file del firmware sono distribuiti solo da Qingping/Xiaomi e un aggiornamento fatto male può rendere la sveglia inutilizzabile.
+## Ringtones
 
-## Compilare
+The clock stores **a single ringtone**: choosing one means uploading it over Bluetooth, which takes a few tens of seconds with the phone nearby.
 
-**Android Studio**: *File → Open* sulla cartella, attendi il sync di Gradle, poi *Run* con il telefono collegato via USB (debug USB attivo).
+- **Qingping originals**: the 9 ringtones of the official app, downloaded on demand from Qingping's own server (the same one their app uses). They are not included in the repository or the APK.
+- **Bundled**: 18 alarm sounds from the Android Open Source Project.
+- **Your own**: any audio file Android can read (mp3, ogg, wav, m4a…).
 
-**Da terminale** (servono JDK 17 e Android SDK con `ANDROID_HOME` impostato):
+Audio is tuned for the clock's tiny speaker: bass it can't play is removed, the sound is compressed to come out louder, matched to the level of the original ringtones and trimmed to 12 seconds. You can preview it on the phone before uploading, and **Test with an alarm in a minute** lets you hear it from the clock itself.
+
+## FAQ
+
+<details>
+<summary><b>Which clocks does it work with?</b></summary>
+
+Any **Qingping CGD1**, including units sold as "Qingping Bluetooth Alarm Clock", the Mi Home edition or the older ClearGrass branding. It does not work with other Qingping models or clocks from other brands.
+</details>
+
+<details>
+<summary><b>Does it need internet?</b></summary>
+
+No, everything goes over Bluetooth. The app only goes online when you open the ringtone screen, to fetch the list and files of the Qingping originals.
+</details>
+
+<details>
+<summary><b>Why doesn't the battery level always show up right away?</b></summary>
+
+The CGD1 only reports its battery in the data it broadcasts while not connected (the "standard" Bluetooth battery reading always says 99% and can't be trusted). The app listens for a few seconds before connecting, and the dashboard shows when the reading was taken.
+</details>
+
+<details>
+<summary><b>What about daylight saving time?</b></summary>
+
+The clock doesn't know about it. Just open the app after the change: time zone and time realign by themselves.
+</details>
+
+<details>
+<summary><b>Can I update the clock's firmware?</b></summary>
+
+Not from OpenCGD1. The update protocol is undocumented, firmware files are only distributed by Qingping, and a failed update can brick the clock. If you really need it, use the Qingping+ app, then reconnect the clock to OpenCGD1.
+</details>
+
+<details>
+<summary><b>Can I use it from two phones?</b></summary>
+
+Yes. OpenCGD1 uses the same pairing code on every phone, so two phones running the app can control the same clock without resetting it.
+</details>
+
+## More screenshots
+
+<p align="center">
+  <img src="docs/screenshots/scan.png" width="200" alt="Looking for the clock">
+  <img src="docs/screenshots/settings.png" width="200" alt="App settings">
+</p>
+
+---
+
+## For developers
+
+<details>
+<summary><b>Building</b></summary>
+
+You need JDK 17 and the Android SDK. Open the folder in Android Studio, or from a terminal:
 
 ```bash
-./gradlew testDebugUnitTest lintDebug assembleRelease
-./gradlew connectedDebugAndroidTest   # test su dispositivo/emulatore (decodifica audio)
-adb install app/build/outputs/apk/release/app-release.apk
+./gradlew testDebugUnitTest lintDebug assembleRelease   # tests, lint and APK
+./gradlew connectedDebugAndroidTest                      # tests on a device or emulator
 ```
 
-**Firma**: la chiave della release non è nel repository. In CI arriva dai secret `OPENCGD1_KEYSTORE_BASE64`, `OPENCGD1_STORE_PASSWORD`, `OPENCGD1_KEY_ALIAS` e `OPENCGD1_KEY_PASSWORD`; in locale da un file `keystore.properties` (ignorato da git) con `storeFile`, `storePassword`, `keyAlias` e `keyPassword`. Senza chiave la release viene firmata con quella di debug.
+Every push to `main` runs tests and lint on GitHub Actions and produces a signed APK.
 
-**Senza installare niente**: ogni push su `main` avvia il workflow `.github/workflows/build.yml`, che esegue test e lint e pubblica l'APK come artifact.
+**Signing.** The key is not in the repository. CI reads it from the `OPENCGD1_KEYSTORE_BASE64`, `OPENCGD1_STORE_PASSWORD`, `OPENCGD1_KEY_ALIAS` and `OPENCGD1_KEY_PASSWORD` secrets; local builds from a `keystore.properties` file (ignored by git) with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`. Without a key, release builds fall back to the debug key.
+</details>
 
-## Architettura
+<details>
+<summary><b>Architecture</b></summary>
 
-Un solo modulo, organizzato per livelli: MVVM con stato immutabile per schermata ed effetti one-shot separati.
+Kotlin, Jetpack Compose and Material 3, MVVM with one immutable state per screen and a separate one-shot effects stream. Hilt for DI, coroutines and Flow, DataStore for preferences.
 
 ```
 app/src/main/java/it/cgd1/sveglia/
-  protocol/   Codec, modelli, costanti, pacchetti audio: Kotlin puro, nessuna dipendenza Android
-  audio/      conversione PCM (filtro, ricampionamento, normalizzazione): Kotlin puro
-  ble/        Cgd1Client (GATT + coroutine), Cgd1Scanner (callbackFlow)
-  data/       ClockRepository: unico confine verso il BLE, mappa ogni eccezione in ClockError
-              AppPreferencesRepository e SavedClockStore su DataStore; LanguageController
-    ringtone/ catalogo suonerie, download originali Qingping, decodifica con MediaCodec, anteprima con AudioTrack
-  di/         moduli Hilt
-  ui/
-    main/     MainViewModel, MainUiState, effetti e interfacce Actions
-    scan/     ricerca della sveglia
-    clock/    sveglie, stato del collegamento, impostazioni del dispositivo
-    ringtone/ scelta, anteprima e caricamento della suoneria
-    settings/ tema, Material You, lingua
-    welcome/  guida del primo avvio
-    theme/    schema colori M3 (statico, dinamico, AMOLED)
-    components/
-app/src/test/         CodecTest (i test Python portati 1:1), AudioUploadTest, PcmProcessingTest, MainViewModelTest
-app/src/androidTest/  decodifica audio reale con MediaCodec, download dal server Qingping
-tools/                convert_ringtone.py per preparare le suonerie incluse
+  protocol/    CGD1 protocol encoding: pure Kotlin, no Android
+  audio/       ringtone PCM conversion: pure Kotlin
+  ble/         coroutine-based GATT client and BLE scanner
+  data/        repositories: the only boundary to Bluetooth and network, errors as domain types
+    ringtone/  ringtone catalog, downloads, decoding, preview
+  di/          Hilt modules
+  ui/          Compose screens, ViewModels, theme
+app/src/test/         JVM tests (protocol, audio, ViewModel)
+app/src/androidTest/  device tests (audio decoding, Qingping server, UI)
+tools/                convert_ringtone.py to prepare bundled ringtones
 ```
 
-Scelte principali:
+- Platform errors stay in the data layer: the ViewModel receives `Result` values with domain errors.
+- All text lives in resources; the ViewModel emits `UiText` and the UI resolves it.
+- Screens depend on `*Actions` interfaces rather than the ViewModel, so they have `@Preview`s and are testable on their own.
+- Dependencies live in `gradle/libs.versions.toml` and are kept up to date by Dependabot.
 
-- **Compose + Material 3**, edge-to-edge, splash screen di sistema, layout limitato in larghezza su tablet
-- **Hilt** per la DI, **Coroutines/Flow** per l'asincronia, **DataStore** per le preferenze
-- Gli errori di piattaforma restano nel data layer: il ViewModel riceve `Result<T>` con `ClockError`
-- Testi solo nelle risorse (`values`, `values-it`, `values-fr`, `values-es`); il ViewModel produce `UiText`, risolto dalla UI
-- Le composable di contenuto dipendono da interfacce `*Actions`, non dal ViewModel, così restano testabili e hanno le `@Preview`
-- Version catalog in `gradle/libs.versions.toml`, aggiornamenti delle dipendenze via Dependabot
+To add a bundled ringtone: `python3 tools/convert_ringtone.py input.ogg app/src/main/res/raw/ringtone_name.pcm`, then add an entry with a new signature to `BuiltInRingtones.kt`.
+</details>
 
-## Note sul protocollo
+<details>
+<summary><b>Protocol notes</b></summary>
 
-- Servizio `22210000-554a-4546-5542-46534450464d`; caratteristiche 0x0001/0x0002 (auth), 0x000B/0x000C (dati)
-- Autenticazione: `11 01 + token`, `11 02 + token`, poi una lettura delle impostazioni come prova (la sveglia fa ACK anche a token errati)
-- Batteria: solo dall'advertisement `FDCD` (campo TLV `02`, bit 7 da mascherare); temperatura e umidità anche dalla notifica `0x0100` da collegati
-- `02 04 + volume` fa suonare un bip a quel volume, non la suoneria caricata: l'app lo usa come prova del volume. Per sentire la suoneria serve una sveglia vera
-- Suoneria: `08 10 + lunghezza (3 byte LE) + firma (4 byte)`, poi pacchetti `81 08 + 128 byte` con conferma `04 ff 08` ogni 512 byte; serve un MTU di almeno 133. L'audio termina con `00` ed è riempito di `FF` fino al blocco
-- L'ora si invia come epoch UTC in secondi interi: l'app la legge a collegamento già pronto e aspetta l'inizio del secondo successivo, così la sveglia parte allineata al telefono. Poi la sveglia va col suo quarzo e può derivare di qualche secondo nel tempo: si riallinea a ogni apertura dell'app o con «Sincronizza ora»; il fuso sta nelle impostazioni a passi di 6 minuti. **La sveglia non conosce l'ora legale**: al cambio d'ora basta aprire l'app, che riallinea il fuso da sola
+- Service `22210000-554a-4546-5542-46534450464d`; characteristics `0x0001`/`0x0002` (authentication) and `0x000B`/`0x000C` (data).
+- Authentication: `11 01 + token`, `11 02 + token`, then a settings read as proof, since the clock acknowledges wrong tokens too.
+- Battery only from the `FDCD` advertisement (TLV field `02`, mask bit 7). Temperature and humidity also from the `0x0100` notification while connected.
+- `02 04 + volume` plays a beep at that volume, not the ringtone: hearing the ringtone takes a real alarm.
+- Ringtone: `08 10 + length (3 bytes LE) + signature (4 bytes)`, then `81 08 + 128 bytes` packets, acknowledged with `04 ff 08` every 512 bytes; needs an MTU of at least 133. Audio (8-bit unsigned PCM, 8 kHz, mono) ends with `00` and is padded with `FF` to the block size.
+- Time: UTC epoch in whole seconds, sent at the start of the next second. The time zone lives in the settings, in 6-minute steps.
+</details>
 
-## Licenza
+## Credits
 
-MIT. Vedi [`LICENSE`](LICENSE). Font e icona hanno licenze proprie, elencate in [`third_party/`](third_party/README.md).
+- [qingping-cgd1](https://github.com/rjocoleman/qingping-cgd1) by Robert Coleman: the Python library this app started from.
+- [clOwOck](https://github.com/MrBoombastic/clOwOck) and [cgd1-rs](https://github.com/smearor/cgd1-rs): reverse engineering of the protocol, ringtones and sensors.
+- Alarm sounds from the [Android Open Source Project](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/data/sounds), [Inter](https://github.com/rsms/inter) font, [Lucide](https://lucide.dev) icons.
+
+OpenCGD1 is not affiliated with Qingping or Xiaomi. Qingping and CGD1 are trademarks of their respective owners.
+
+## License
+
+[MIT](LICENSE). Sounds, font and icons have their own licenses, listed in [`third_party/`](third_party/README.md).

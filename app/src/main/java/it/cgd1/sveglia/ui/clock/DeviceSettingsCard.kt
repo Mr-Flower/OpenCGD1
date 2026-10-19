@@ -41,6 +41,7 @@ private const val SCREEN_LIGHT_STEP = 5
 fun DeviceSettingsCard(
     settings: DeviceSettings,
     currentRingtone: CurrentRingtone?,
+    settingsRevision: Int,
     onUpdate: ((DeviceSettings) -> DeviceSettings) -> Unit,
     onVolumeChange: (Int) -> Unit,
     onOpenRingtones: () -> Unit,
@@ -63,6 +64,7 @@ fun DeviceSettingsCard(
                 value = settings.volume,
                 range = minOf(VOLUME_MIN, settings.volume)..maxOf(VOLUME_MAX, settings.volume),
                 step = 1,
+                resetKey = settingsRevision,
                 onValueChange = onVolumeChange,
             )
             SwitchRow(
@@ -87,6 +89,7 @@ fun DeviceSettingsCard(
                 range = 0..100,
                 step = BRIGHTNESS_STEP,
                 valueLabel = percent,
+                resetKey = settingsRevision,
                 onValueChange = { v -> onUpdate { it.copy(dayBrightness = v) } },
             )
             HorizontalDivider(Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
@@ -102,6 +105,7 @@ fun DeviceSettingsCard(
                     range = 0..100,
                     step = BRIGHTNESS_STEP,
                     valueLabel = percent,
+                    resetKey = settingsRevision,
                     onValueChange = { v -> onUpdate { it.copy(nightBrightness = v) } },
                 )
                 TimeRow(stringResource(R.string.settings_night_start), settings.nightStart, { t -> onUpdate { it.copy(nightStart = t) } })
@@ -114,6 +118,7 @@ fun DeviceSettingsCard(
                 range = minOf(SCREEN_LIGHT_MIN, settings.screenLightSeconds)..maxOf(SCREEN_LIGHT_MAX, settings.screenLightSeconds),
                 step = SCREEN_LIGHT_STEP,
                 valueLabel = { resources.getString(R.string.value_seconds, it) },
+                resetKey = settingsRevision,
                 onValueChange = { v -> onUpdate { it.copy(screenLightSeconds = v) } },
             )
         }

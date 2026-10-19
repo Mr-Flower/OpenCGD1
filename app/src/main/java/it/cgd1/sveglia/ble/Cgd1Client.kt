@@ -15,6 +15,7 @@ import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.AudioUpload
 import it.cgd1.sveglia.protocol.Cgd1
 import it.cgd1.sveglia.protocol.Cgd1AuthException
+import it.cgd1.sveglia.protocol.Cgd1ClosedException
 import it.cgd1.sveglia.protocol.Cgd1CommandException
 import it.cgd1.sveglia.protocol.Cgd1ConnectionException
 import it.cgd1.sveglia.protocol.Codec
@@ -79,31 +80,25 @@ class Cgd1Client(
     @Volatile private var gatt: BluetoothGatt? = null
     @Volatile private var ready = false
     @Volatile private var connectWaiter: CompletableDeferred<Unit>? = null
-    @Volatile private var opWaiter: CompletableDeferred<ByteArray>? = null
+    @Volatile private var pendingOp: PendingOp? = null
     @Volatile private var settingsWaiter: CompletableDeferred<ByteArray>? = null
     @Volatile private var firmwareWaiter: CompletableDeferred<ByteArray>? = null
     @Volatile private var alarmWaiter: CompletableDeferred<List<Alarm>>? = null
     private val ackWaiters = ConcurrentHashMap<Int, CompletableDeferred<Int>>()
     private val alarmSlots = arrayOfNulls<Alarm>(Cgd1.ALARM_SLOT_COUNT)
     @Volatile private var mtu = DEFAULT_MTU
-
-    // Da Android 14 il sistema negozia l'MTU da solo: quella callback non deve completare un'altra operazione.
-    @Volatile private var mtuRequestPending = false
     private var idleJob: Job? = null
 
     /** Dopo [closeNow] il client non si ricollega più, nemmeno dai percorsi di retry. */
     @Volatile private var closed = false
 
-
-    suspend fun connect() = cmdMutex.withLock {
+    /**
+     * Collega e autentica. Restituisce le impostazioni lette per verificare il token se il collegamento
+     * è nuovo, così chi le deve leggere subito dopo risparmia un giro; null se era già collegato.
+     */
+    suspend fun connect(): DeviceSettings? = cmdMutex.withLock {
         idleJob?.cancel()
-        ensureConnected()
-        scheduleIdleDisconnect()
-    }
-
-    suspend fun disconnect() {
-        idleJob?.cancel()
-        cmdMutex.withLock { closeLink() }
+        ensureConnected().also { scheduleIdleDisconnect() }
     }
 
     /** Chiusura immediata, non sospendente (per onCleared / cambio sveglia). */
@@ -128,8 +123,6 @@ class Cgd1Client(
         runCommand { writeWithAck(Cgd1.DATA_WRITE_UUID, payload) }
     }
 
-    suspend fun deleteAlarm(slot: Int) = writeAlarm(slot, Alarm.EMPTY)
-
     /** Invia i secondi epoch (UTC); la sveglia mostra l'ora applicando il fuso delle impostazioni. */
     suspend fun syncTime(now: () -> Long = System::currentTimeMillis) {
         runCommand {
@@ -138,13 +131,6 @@ class Cgd1Client(
             delay(waitMillis)
             writeWithAck(Cgd1.AUTH_WRITE_UUID, Codec.encodeTime(epochSeconds))
         }
-    }
-
-    /** Luminosità immediata 0–100 (passi da 10). */
-    suspend fun setBrightness(level: Int) {
-        require(level in 0..100) { "luminosità 0-100, ricevuto $level" }
-        val payload = Cgd1.CMD_BRIGHTNESS + byteArrayOf((level / 10).toByte())
-        runCommand { writeWithAck(Cgd1.DATA_WRITE_UUID, payload) }
     }
 
     suspend fun readFirmware(): String = runCommand {
@@ -249,12 +235,7 @@ class Cgd1Client(
 
     private suspend fun ensureMtu() {
         if (mtu - ATT_HEADER_SIZE >= AudioUpload.PACKET_SIZE) return
-        mtuRequestPending = true
-        try {
-            gattOp("request mtu") { g -> g.requestMtu(UPLOAD_MTU) }
-        } finally {
-            mtuRequestPending = false
-        }
+        gattOp(OP_MTU) { g -> g.requestMtu(UPLOAD_MTU) }
         if (mtu - ATT_HEADER_SIZE < AudioUpload.PACKET_SIZE) {
             throw Cgd1CommandException("MTU troppo piccolo per caricare la suoneria: $mtu")
         }
@@ -279,18 +260,22 @@ class Cgd1Client(
             ?: throw Cgd1ConnectionException("timeout: $what")
 
 
-    private suspend fun ensureConnected() {
-        if (closed) throw CancellationException("client chiuso")
-        if (ready && gatt != null) return
+    /** Restituisce le impostazioni lette durante l'autenticazione, o null se il link era già aperto. */
+    private suspend fun ensureConnected(): DeviceSettings? {
+        if (closed) throw Cgd1ClosedException()
+        if (ready && gatt != null) return null
         var last: Exception? = null
-        repeat(2) { attempt ->
+        repeat(CONNECT_ATTEMPTS) { attempt ->
             try {
                 openLink()
-                authenticate()
+                val settings = authenticate()
                 ready = true
                 _connected.value = true
-                return
+                return settings
             } catch (e: Cgd1AuthException) {
+                throw e
+            } catch (e: SecurityException) {
+                closeLink()
                 throw e
             } catch (e: CancellationException) {
                 closeLink()
@@ -299,14 +284,14 @@ class Cgd1Client(
                 last = e
                 Log.w(TAG, "connect attempt ${attempt + 1} failed: ${e.message}")
                 closeLink()
-                delay(600)
+                if (attempt < CONNECT_ATTEMPTS - 1) delay(RECONNECT_DELAY_MS)
             }
         }
         throw Cgd1ConnectionException("impossibile collegarsi alla sveglia", last)
     }
 
     private suspend fun openLink() {
-        if (closed) throw CancellationException("client chiuso")
+        if (closed) throw Cgd1ClosedException()
         val w = CompletableDeferred<Unit>()
         connectWaiter = w
         // L'alternativa con BluetoothGattConnectionSettings esiste solo da API 37.
@@ -314,7 +299,7 @@ class Cgd1Client(
         gatt = device.connectGatt(appContext, false, callback, BluetoothDevice.TRANSPORT_LE)
             ?: throw Cgd1ConnectionException("connectGatt ha restituito null")
         withTimeoutOrNull(15_000) { w.await() } ?: throw Cgd1ConnectionException("timeout di connessione")
-        gattOp("discover services") { g -> g.discoverServices() }
+        gattOp(OP_DISCOVER) { g -> g.discoverServices() }
         val authNotify = findChar(Cgd1.AUTH_NOTIFY_UUID) ?: throw Cgd1ConnectionException("caratteristica auth assente: è una CGD1?")
         val dataNotify = findChar(Cgd1.DATA_NOTIFY_UUID) ?: throw Cgd1ConnectionException("caratteristica dati assente")
         if (findChar(Cgd1.AUTH_WRITE_UUID) == null || findChar(Cgd1.DATA_WRITE_UUID) == null) {
@@ -323,17 +308,27 @@ class Cgd1Client(
         enableNotify(authNotify)
         enableNotify(dataNotify)
         // Facoltativa: senza, la dashboard mostra solo i valori dell'ultimo advertisement.
-        findChar(Cgd1.SENSOR_NOTIFY_UUID)?.let { runCatching { enableNotify(it) } }
+        findChar(Cgd1.SENSOR_NOTIFY_UUID)?.let { sensorChar ->
+            try {
+                enableNotify(sensorChar)
+            } catch (e: Cgd1ConnectionException) {
+                Log.w(TAG, "sensor notifications unavailable: ${e.message}")
+            }
+        }
     }
 
-    private suspend fun authenticate() {
+    private suspend fun authenticate(): DeviceSettings {
         // La sveglia fa ACK anche a un token sbagliato: l'auth si prova con una lettura
         // privilegiata. Token errato (o sveglia non in pairing) = link che cade.
         try {
             writeChar(Cgd1.AUTH_WRITE_UUID, Cgd1.AUTH_STEP1 + token)
             writeChar(Cgd1.AUTH_WRITE_UUID, Cgd1.AUTH_STEP2 + token)
-            requestSettings()
+            return Codec.decodeSettings(requestSettings())
         } catch (e: CancellationException) {
+            throw e
+        } catch (e: SecurityException) {
+            // Permesso revocato: non è un token rifiutato e non va presentato come tale.
+            closeLink()
             throw e
         } catch (e: Exception) {
             closeLink()
@@ -356,7 +351,7 @@ class Cgd1Client(
 
     private fun failPending(err: Exception) {
         connectWaiter?.completeExceptionally(err)
-        opWaiter?.completeExceptionally(err)
+        pendingOp?.result?.completeExceptionally(err)
         settingsWaiter?.completeExceptionally(err)
         firmwareWaiter?.completeExceptionally(err)
         alarmWaiter?.completeExceptionally(err)
@@ -371,22 +366,25 @@ class Cgd1Client(
         return g.services.firstNotNullOfOrNull { it.getCharacteristic(uuid) }
     }
 
-    /** Avvia un'operazione GATT e attende la callback corrispondente. */
-    private suspend fun gattOp(what: String, start: (BluetoothGatt) -> Boolean): ByteArray = opMutex.withLock {
+    /**
+     * Avvia un'operazione GATT e attende la sua callback. [tag] identifica l'operazione: una callback
+     * arrivata in ritardo, dopo un timeout, non deve completare quella successiva.
+     */
+    private suspend fun gattOp(tag: String, start: (BluetoothGatt) -> Boolean) = opMutex.withLock {
         val g = gatt ?: throw Cgd1ConnectionException("non connesso")
-        val w = CompletableDeferred<ByteArray>()
-        opWaiter = w
+        val op = PendingOp(tag)
+        pendingOp = op
         try {
-            if (!start(g)) throw Cgd1ConnectionException("operazione GATT rifiutata: $what")
-            withTimeoutOrNull(commandTimeoutMs) { w.await() } ?: throw Cgd1ConnectionException("timeout GATT: $what")
+            if (!start(g)) throw Cgd1ConnectionException("operazione GATT rifiutata: $tag")
+            withTimeoutOrNull(commandTimeoutMs) { op.result.await() } ?: throw Cgd1ConnectionException("timeout GATT: $tag")
         } finally {
-            opWaiter = null
+            pendingOp = null
         }
     }
 
     private suspend fun writeChar(uuid: UUID, value: ByteArray) {
         val ch = findChar(uuid) ?: throw Cgd1ConnectionException("caratteristica $uuid assente")
-        gattOp("write $uuid") { g ->
+        gattOp(writeTag(uuid)) { g ->
             if (Build.VERSION.SDK_INT >= 33) {
                 g.writeCharacteristic(ch, value, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothStatusCodes.SUCCESS
             } else {
@@ -409,7 +407,7 @@ class Cgd1Client(
         } else {
             BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
         }
-        gattOp("enable notify ${ch.uuid}") { gg ->
+        gattOp(descriptorTag(ch.uuid)) { gg ->
             if (Build.VERSION.SDK_INT >= 33) {
                 gg.writeDescriptor(cccd, value) == BluetoothStatusCodes.SUCCESS
             } else {
@@ -479,29 +477,19 @@ class Cgd1Client(
             }
         }
 
-        override fun onServicesDiscovered(g: BluetoothGatt, status: Int) = completeOp(status, ByteArray(0))
+        override fun onServicesDiscovered(g: BluetoothGatt, status: Int) = completeOp(OP_DISCOVER, status)
 
+        // Da Android 14 il sistema negozia l'MTU anche da solo: senza una richiesta in corso il tag non corrisponde.
         override fun onMtuChanged(g: BluetoothGatt, mtu: Int, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) this@Cgd1Client.mtu = mtu
-            if (mtuRequestPending) completeOp(status, ByteArray(0))
+            completeOp(OP_MTU, status)
         }
 
         override fun onCharacteristicWrite(g: BluetoothGatt, ch: BluetoothGattCharacteristic, status: Int) =
-            completeOp(status, ByteArray(0))
+            completeOp(writeTag(ch.uuid), status)
 
         override fun onDescriptorWrite(g: BluetoothGatt, d: BluetoothGattDescriptor, status: Int) =
-            completeOp(status, ByteArray(0))
-
-        // API 33+
-        override fun onCharacteristicRead(g: BluetoothGatt, ch: BluetoothGattCharacteristic, value: ByteArray, status: Int) =
-            completeOp(status, value)
-
-        // API < 33
-        @Deprecated("Deprecated in Java")
-        override fun onCharacteristicRead(g: BluetoothGatt, ch: BluetoothGattCharacteristic, status: Int) {
-            @Suppress("DEPRECATION")
-            completeOp(status, ch.value ?: ByteArray(0))
-        }
+            completeOp(descriptorTag(d.characteristic.uuid), status)
 
         // API 33+
         override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic, value: ByteArray) =
@@ -514,10 +502,24 @@ class Cgd1Client(
             onNotify(ch.uuid, ch.value?.copyOf() ?: return)
         }
 
-        private fun completeOp(status: Int, value: ByteArray) {
-            val w = opWaiter ?: return
-            if (status == BluetoothGatt.GATT_SUCCESS) w.complete(value)
-            else w.completeExceptionally(Cgd1ConnectionException("errore GATT $status"))
+        private fun completeOp(tag: String, status: Int) {
+            val op = pendingOp?.takeIf { it.tag == tag } ?: return
+            if (status == BluetoothGatt.GATT_SUCCESS) op.result.complete(Unit)
+            else op.result.completeExceptionally(Cgd1ConnectionException("errore GATT $status"))
         }
+    }
+
+    private class PendingOp(val tag: String) {
+        val result = CompletableDeferred<Unit>()
+    }
+
+    private companion object {
+        const val OP_DISCOVER = "discover"
+        const val OP_MTU = "mtu"
+        const val CONNECT_ATTEMPTS = 2
+        const val RECONNECT_DELAY_MS = 600L
+
+        fun writeTag(uuid: UUID) = "write:$uuid"
+        fun descriptorTag(characteristic: UUID) = "descriptor:$characteristic"
     }
 }

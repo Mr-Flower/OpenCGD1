@@ -3,13 +3,17 @@ package it.cgd1.sveglia.data.ringtone
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.util.Log
 import it.cgd1.sveglia.protocol.AudioUpload
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val TAG = "RingtonePlayer"
+
 /** Anteprima sul telefono, nello stesso formato a 8 kHz e 8 bit che riceverà la sveglia. */
 interface RingtonePlayer {
-    fun play(pcm: ByteArray)
+    /** false se il telefono non riesce a riprodurre l'audio (formato non supportato, audio vuoto). */
+    fun play(pcm: ByteArray): Boolean
     fun stop()
 }
 
@@ -17,9 +21,11 @@ interface RingtonePlayer {
 class AudioTrackRingtonePlayer @Inject constructor() : RingtonePlayer {
     private var track: AudioTrack? = null
 
-    override fun play(pcm: ByteArray) {
+    override fun play(pcm: ByteArray): Boolean {
         stop()
-        val audioTrack = AudioTrack.Builder()
+        if (pcm.isEmpty()) return false
+        val audioTrack = try {
+            AudioTrack.Builder()
             .setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -36,9 +42,20 @@ class AudioTrackRingtonePlayer @Inject constructor() : RingtonePlayer {
             .setTransferMode(AudioTrack.MODE_STATIC)
             .setBufferSizeInBytes(pcm.size)
             .build()
-        audioTrack.write(pcm, 0, pcm.size)
-        audioTrack.play()
+        } catch (e: Exception) {
+            Log.w(TAG, "AudioTrack unavailable", e)
+            return false
+        }
         track = audioTrack
+        return try {
+            audioTrack.write(pcm, 0, pcm.size)
+            audioTrack.play()
+            true
+        } catch (e: IllegalStateException) {
+            Log.w(TAG, "preview playback failed", e)
+            stop()
+            false
+        }
     }
 
     override fun stop() {

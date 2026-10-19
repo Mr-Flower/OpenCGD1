@@ -118,8 +118,8 @@
     <string name="ringtone_uploading">Envoi au réveil… %1$d %%</string>
     <string name="ringtone_uploading_hint">Gardez le téléphone près du réveil jusqu\'à la fin.</string>
     <string name="ringtone_attribution">%1$s · %2$s</string>
-    <string name="ringtone_preview">Écouter un aperçu</string>
-    <string name="ringtone_stop_preview">Arrêter l\'aperçu</string>
+    <string name="ringtone_preview">Écouter un aperçu de %1$s</string>
+    <string name="ringtone_stop_preview">Arrêter l\'aperçu de %1$s</string>
     <string name="ringtone_original">%1$s (Qingping)</string>
     <string name="ringtone_custom">Votre sonnerie</string>
     <string name="ringtone_unknown">Inconnue</string>
@@ -178,4 +178,6 @@
     <string name="welcome_permission_denied">L\'autorisation a été refusée. Ouvrez les paramètres de l\'appli, allez dans Autorisations et autorisez « Appareils à proximité ».</string>
     <string name="app_settings_theme">Thème</string>
     <string name="app_settings_app_language">Langue de l\'appli</string>
+    <string name="error_preview">Ce téléphone ne peut pas lire l\'aperçu.</string>
+    <string name="alarm_switch_label">Alarme de %1$s</string>
 </resources>

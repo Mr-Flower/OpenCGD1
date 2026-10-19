@@ -16,6 +16,8 @@ import it.cgd1.sveglia.data.AppCompatLanguageController
 import it.cgd1.sveglia.data.BleClockRepository
 import it.cgd1.sveglia.data.ClockRepository
 import it.cgd1.sveglia.data.LanguageController
+import it.cgd1.sveglia.data.SystemTimeSource
+import it.cgd1.sveglia.data.TimeSource
 import it.cgd1.sveglia.data.ringtone.AndroidRingtoneRepository
 import it.cgd1.sveglia.data.ringtone.AudioTrackRingtonePlayer
 import it.cgd1.sveglia.data.ringtone.RingtonePlayer
@@ -36,6 +38,9 @@ abstract class AppModule {
 
     @Binds
     abstract fun bindRingtonePlayer(impl: AudioTrackRingtonePlayer): RingtonePlayer
+
+    @Binds
+    abstract fun bindTimeSource(impl: SystemTimeSource): TimeSource
 
     @Binds
     abstract fun bindLanguageController(impl: AppCompatLanguageController): LanguageController

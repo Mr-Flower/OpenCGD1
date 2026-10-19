@@ -51,6 +51,7 @@ import it.cgd1.sveglia.protocol.Language
 import it.cgd1.sveglia.protocol.Weekday
 import it.cgd1.sveglia.ui.components.SectionHeader
 import it.cgd1.sveglia.ui.components.SwitchRow
+import it.cgd1.sveglia.ui.components.contentWidth
 import it.cgd1.sveglia.ui.main.ClockActions
 import it.cgd1.sveglia.ui.main.ClockReadings
 import it.cgd1.sveglia.ui.main.ConnectionState
@@ -172,6 +173,7 @@ fun ClockScreen(
                         DeviceSettingsCard(
                             settings = settings,
                             currentRingtone = state.currentRingtone,
+                            settingsRevision = state.settingsRevision,
                             onUpdate = actions::onUpdateSettings,
                             onVolumeChange = actions::onVolumeChange,
                             onOpenRingtones = onOpenRingtones,
@@ -199,7 +201,6 @@ fun ClockScreen(
     }
 }
 
-internal fun Modifier.contentWidth(): Modifier = widthIn(max = 640.dp).fillMaxWidth()
 
 private object PreviewClockActions : ClockActions {
     override fun onCloseClock() = Unit

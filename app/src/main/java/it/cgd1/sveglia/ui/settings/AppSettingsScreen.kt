@@ -23,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +47,7 @@ import it.cgd1.sveglia.data.AppPreferences
 import it.cgd1.sveglia.data.ThemeMode
 import it.cgd1.sveglia.ui.components.SectionHeader
 import it.cgd1.sveglia.ui.components.SwitchRow
+import it.cgd1.sveglia.ui.components.contentWidth
 import it.cgd1.sveglia.ui.theme.OpenCgd1Theme
 import it.cgd1.sveglia.ui.theme.isDynamicColorSupported
 
@@ -84,9 +84,7 @@ fun AppSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            val cardModifier = Modifier
-                .widthIn(max = 640.dp)
-                .fillMaxWidth()
+            val cardModifier = Modifier.contentWidth()
 
             SectionHeader(stringResource(R.string.app_settings_appearance), cardModifier)
             ElevatedCard(cardModifier) {

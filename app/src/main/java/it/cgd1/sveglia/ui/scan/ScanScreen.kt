@@ -50,6 +50,7 @@ import it.cgd1.sveglia.ble.FoundClock
 import it.cgd1.sveglia.data.SavedClock
 import it.cgd1.sveglia.protocol.SensorData
 import it.cgd1.sveglia.ui.components.SectionHeader
+import it.cgd1.sveglia.ui.components.contentWidth
 import it.cgd1.sveglia.ui.main.MainUiState
 import it.cgd1.sveglia.ui.main.ScanActions
 import it.cgd1.sveglia.ui.sensorLabel
@@ -118,8 +119,6 @@ fun ScanScreen(
     }
 }
 
-// Su tablet e telefoni orizzontali il contenuto non deve allargarsi a tutto schermo.
-private fun Modifier.contentWidth(): Modifier = widthIn(max = 640.dp).fillMaxWidth()
 
 @Composable
 private fun SavedClockCard(clock: SavedClock, onClick: () -> Unit) {
@@ -176,7 +175,7 @@ private fun FoundClockCard(clock: FoundClock, onClick: () -> Unit, modifier: Mod
             supportingContent = {
                 Column {
                     Text(stringResource(R.string.scan_address_rssi, clock.address, clock.rssi))
-                    clock.sensor?.let { Text(sensorLabel(it, null)) }
+                    clock.sensor?.let { Text(sensorLabel(it)) }
                 }
             },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),

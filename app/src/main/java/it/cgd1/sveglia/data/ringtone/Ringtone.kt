@@ -49,7 +49,7 @@ sealed interface CurrentRingtone {
 
     companion object {
         // Elenco pubblicato da Qingping in /raw/rings: serve finché quello scaricato non è disponibile.
-        internal val ORIGINAL_NAMES = mapOf(
+        private val ORIGINAL_NAMES = mapOf(
             "fdc366a5" to "Beep",
             "0961bb77" to "Digital Ringtone",
             "ba2c2c8c" to "Digital Ringtone 2",

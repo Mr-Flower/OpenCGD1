@@ -1,5 +1,6 @@
 package it.cgd1.sveglia.data
 
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -19,10 +20,15 @@ class SavedClockStore @Inject constructor(private val dataStore: DataStore<Prefe
         .catch { e -> if (e is IOException) emit(emptyPreferences()) else throw e }
         .map { prefs -> prefs[KEY_ADDRESS]?.let { SavedClock(it, prefs[KEY_NAME]) } }
 
+    /** Ricordare la sveglia è una comodità: se il disco non collabora l'app continua a funzionare. */
     suspend fun save(clock: SavedClock) {
-        dataStore.edit { prefs ->
-            prefs[KEY_ADDRESS] = clock.address
-            if (clock.name != null) prefs[KEY_NAME] = clock.name else prefs.remove(KEY_NAME)
+        try {
+            dataStore.edit { prefs ->
+                prefs[KEY_ADDRESS] = clock.address
+                if (clock.name != null) prefs[KEY_NAME] = clock.name else prefs.remove(KEY_NAME)
+            }
+        } catch (e: IOException) {
+            Log.w("SavedClockStore", "saved clock not persisted", e)
         }
     }
 
