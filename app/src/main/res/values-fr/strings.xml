@@ -28,13 +28,10 @@
     <string name="scan_nearby">Réveils à proximité</string>
     <string name="scan_in_progress">Recherche… gardez le téléphone près du réveil.</string>
     <string name="scan_idle_hint">Touchez « Rechercher » pour trouver le réveil.</string>
-    <string name="scan_first_time_title">Première fois ?</string>
-    <string name="scan_first_time_body">Le réveil doit être dissocié de Mi Home : supprimez-le de cette appli ou maintenez le bouton jusqu\'à ce que l\'icône Bluetooth clignote. À la première connexion, il se liera à cette appli.</string>
 
     <!-- Connection -->
     <string name="status_connecting">Connexion au réveil…</string>
     <string name="status_connected">Connecté</string>
-    <string name="status_idle">En pause · se reconnecte à la prochaine commande</string>
     <string name="status_failed">Échec de la connexion</string>
     <string name="status_rejected">Connexion refusée</string>
     <string name="status_firmware">Micrologiciel %1$s</string>
@@ -82,7 +79,6 @@
     <string name="settings_night_brightness">Luminosité de nuit</string>
     <string name="settings_night_start">Début de la nuit</string>
     <string name="settings_night_end">Fin de la nuit</string>
-    <string name="settings_screen_light">Éclairage de l\'écran : %1$d s</string>
     <string name="value_percent">%1$d %%</string>
 
     <!-- App settings -->
@@ -128,8 +124,51 @@
     <string name="ringtone_original">%1$s (Qingping)</string>
     <string name="ringtone_custom">Votre sonnerie</string>
     <string name="ringtone_unknown">Inconnue</string>
-    <string name="ringtone_credits">Les sonneries incluses proviennent de lomiri-sounds (UBports) et sont distribuées sous la licence indiquée pour chacune ; elles ont été converties au format du réveil.</string>
+    <string name="ringtone_credits">Les sonneries incluses sont des sons d\'alarme de l\'Android Open Source Project (Apache 2.0), convertis au format du réveil. Les originales Qingping ne font pas partie de l\'appli : elles sont téléchargées depuis le serveur Qingping uniquement à l\'ouverture de cet écran.</string>
     <string name="message_ringtone_set">Sonnerie définie</string>
     <string name="error_ringtone_unsupported">Impossible de lire ce fichier audio.</string>
     <string name="error_ringtone_empty">Le fichier audio est vide.</string>
+
+    <!-- Dashboard -->
+    <string name="status_idle_short">En pause</string>
+    <string name="dashboard_temperature">Température</string>
+    <string name="dashboard_humidity">Humidité</string>
+    <string name="dashboard_celsius">%1$.1f °C</string>
+    <string name="dashboard_fahrenheit">%1$.1f °F</string>
+    <string name="dashboard_percent">%1$.0f %%</string>
+    <string name="dashboard_battery">Batterie %1$d %%</string>
+    <string name="dashboard_no_readings">Aucune mesure pour l\'instant : elles arrivent quand le réveil est à proximité.</string>
+    <string name="dashboard_updated">Mis à jour à %1$s</string>
+    <string name="dashboard_updated_battery">Mis à jour à %1$s · batterie à %2$s</string>
+    <string name="settings_screen_light_title">Durée de l\'éclairage</string>
+    <string name="value_seconds">%1$d s</string>
+
+    <!-- Welcome -->
+    <string name="welcome_skip">Passer</string>
+    <string name="welcome_next">Suivant</string>
+    <string name="welcome_start">Commencer</string>
+    <string name="welcome_page">Page %1$d sur %2$d</string>
+    <string name="welcome_intro_title">Bienvenue dans OpenCGD1</string>
+    <string name="welcome_intro_body">Pilotez votre réveil Qingping CGD1 directement en Bluetooth : alarmes, heure, sonnerie et réglages. Sans compte, sans cloud, sans Mi Home.</string>
+    <string name="welcome_prepare_title">Préparez le réveil</string>
+    <string name="welcome_prepare_body">Le réveil n\'accepte qu\'une appli à la fois. Si vous l\'avez utilisé avec Mi Home ou Qingping+, il faut d\'abord le libérer.</string>
+    <string name="welcome_prepare_step_1">Supprimez le réveil de Mi Home ou Qingping+.</string>
+    <string name="welcome_prepare_step_2">Ou maintenez le bouton du réveil jusqu\'à ce que l\'icône Bluetooth clignote.</string>
+    <string name="welcome_prepare_step_3">À la première connexion, le réveil se lie à OpenCGD1 et Mi Home ne le verra plus.</string>
+    <string name="welcome_permission_title">Autorisation Bluetooth</string>
+    <string name="welcome_permission_body">Elle sert uniquement à trouver le réveil et à communiquer avec lui. L\'appli n\'utilise pas votre position.</string>
+    <string name="welcome_permission_granted">Autorisation accordée</string>
+    <string name="welcome_ready_title">Tout est prêt</string>
+    <string name="welcome_ready_body">Gardez le téléphone près du réveil : l\'appli le cherchera toute seule. Vous pouvez revoir ce guide depuis les Paramètres.</string>
+    <string name="app_settings_help">Aide</string>
+    <string name="app_settings_show_welcome">Guide de démarrage</string>
+    <string name="app_settings_show_welcome_hint">Revoir comment préparer et connecter le réveil</string>
+
+    <!-- Original ringtones -->
+    <string name="ringtone_original_section">Originales Qingping</string>
+    <string name="ringtone_original_source">Téléchargée depuis le serveur Qingping</string>
+    <string name="ringtone_original_loading">Chargement de la liste depuis Qingping…</string>
+    <string name="ringtone_original_failed">Impossible de joindre le serveur Qingping. Vérifiez votre connexion.</string>
+    <string name="ringtone_play_on_clock">Faire sonner le réveil</string>
+    <string name="error_ringtone_download">Échec du téléchargement. Vérifiez votre connexion.</string>
 </resources>

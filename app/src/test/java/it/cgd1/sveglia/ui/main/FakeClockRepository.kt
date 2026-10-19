@@ -8,12 +8,15 @@ import it.cgd1.sveglia.data.ClockSnapshot
 import it.cgd1.sveglia.data.SavedClock
 import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
 import it.cgd1.sveglia.data.ringtone.CustomRingtone
+import it.cgd1.sveglia.data.ringtone.OriginalRingtone
 import it.cgd1.sveglia.data.ringtone.RingtoneError
+import it.cgd1.sveglia.data.ringtone.RingtoneOption
 import it.cgd1.sveglia.data.ringtone.RingtonePlayer
 import it.cgd1.sveglia.data.ringtone.RingtoneRepository
 import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.AudioUpload
 import it.cgd1.sveglia.protocol.DeviceSettings
+import it.cgd1.sveglia.protocol.SensorData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +26,7 @@ class FakeClockRepository(private val snapshot: ClockSnapshot) : ClockRepository
     override val isBluetoothAvailable = true
     override val isBluetoothEnabled = MutableStateFlow(true)
     override val savedClock = MutableStateFlow<SavedClock?>(null)
-    val scanResults = MutableSharedFlow<FoundClock>()
+    val scanResults = MutableSharedFlow<FoundClock>(replay = 1)
     val session = FakeClockSession(snapshot)
 
     override fun isLocationRequiredButOff() = false
@@ -39,6 +42,8 @@ class FakeClockRepository(private val snapshot: ClockSnapshot) : ClockRepository
 
 class FakeClockSession(private val snapshot: ClockSnapshot) : ClockSession {
     override val isConnected: StateFlow<Boolean> = MutableStateFlow(false)
+    override val liveSensor = MutableSharedFlow<SensorData>()
+    var clockPreviews = 0
     var loadError: ClockError? = null
     var writeError: ClockError? = null
     val writtenAlarms = mutableListOf<Pair<Int, Alarm>>()
@@ -61,6 +66,8 @@ class FakeClockSession(private val snapshot: ClockSnapshot) : ClockSession {
             uploads += pcm to signature
         }
 
+    override suspend fun previewRingtone(volume: Int): Result<Unit> = write { clockPreviews++ }
+
     override suspend fun syncTime(): Result<Unit> = Result.success(Unit)
 
     override fun close() {
@@ -72,9 +79,13 @@ class FakeClockSession(private val snapshot: ClockSnapshot) : ClockSession {
 
 class FakeRingtoneRepository(override val builtIns: List<BuiltInRingtone>) : RingtoneRepository {
     var converted: Result<CustomRingtone> = Result.failure(RingtoneError.Empty())
+    var originals: Result<List<OriginalRingtone>> = Result.success(emptyList())
+
+    override suspend fun originals(): Result<List<OriginalRingtone>> = originals
 
     // Un secondo di audio: l'anteprima deve durare abbastanza da poterla osservare in corso.
-    override suspend fun loadPcm(ringtone: BuiltInRingtone): ByteArray = ByteArray(AudioUpload.SAMPLE_RATE) { ringtone.id.length.toByte() }
+    override suspend fun loadPcm(ringtone: RingtoneOption): Result<ByteArray> =
+        Result.success(ByteArray(AudioUpload.SAMPLE_RATE) { ringtone.id.length.toByte() })
 
     override suspend fun convert(uri: String): Result<CustomRingtone> = converted
 }

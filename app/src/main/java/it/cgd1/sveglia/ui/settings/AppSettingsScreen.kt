@@ -1,6 +1,7 @@
 package it.cgd1.sveglia.ui.settings
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -106,6 +107,19 @@ fun AppSettingsScreen(
                 )
             }
 
+            SectionHeader(stringResource(R.string.app_settings_help), cardModifier)
+            ElevatedCard(cardModifier) {
+                ListItem(
+                    headlineContent = { Text(stringResource(R.string.app_settings_show_welcome)) },
+                    supportingContent = { Text(stringResource(R.string.app_settings_show_welcome_hint)) },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.clickable(role = Role.Button) {
+                        onBack()
+                        actions.onShowOnboarding()
+                    },
+                )
+            }
+
             SectionHeader(stringResource(R.string.app_settings_language), cardModifier)
             ElevatedCard(cardModifier) {
                 Column(Modifier.selectableGroup()) {
@@ -153,6 +167,8 @@ private object PreviewAppSettingsActions : AppSettingsActions {
     override fun onThemeModeChange(mode: ThemeMode) = Unit
     override fun onDynamicColorChange(enabled: Boolean) = Unit
     override fun onLanguageChange(language: AppLanguage) = Unit
+    override fun onCompleteOnboarding() = Unit
+    override fun onShowOnboarding() = Unit
 }
 
 @Preview(showBackground = true)

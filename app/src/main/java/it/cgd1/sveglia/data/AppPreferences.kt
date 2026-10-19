@@ -5,4 +5,5 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK, AMOLED }
 data class AppPreferences(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val useDynamicColor: Boolean = true,
+    val onboardingCompleted: Boolean = false,
 )

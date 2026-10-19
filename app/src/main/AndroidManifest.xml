@@ -15,6 +15,9 @@
         tools:targetApi="s" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
+    <!-- Solo per scaricare, a richiesta, le suonerie originali dal server Qingping. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".OpenCgd1Application"
         android:allowBackup="true"

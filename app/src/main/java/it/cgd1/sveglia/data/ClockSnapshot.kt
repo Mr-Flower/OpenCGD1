@@ -7,5 +7,4 @@ data class ClockSnapshot(
     val settings: DeviceSettings,
     val alarms: List<Alarm>,
     val firmware: String?,
-    val battery: Int?,
 )

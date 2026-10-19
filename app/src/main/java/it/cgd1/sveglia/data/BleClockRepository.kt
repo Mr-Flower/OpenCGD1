@@ -21,6 +21,7 @@ import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.Cgd1AuthException
 import it.cgd1.sveglia.protocol.Cgd1CommandException
 import it.cgd1.sveglia.protocol.DeviceSettings
+import it.cgd1.sveglia.protocol.SensorData
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -105,13 +107,15 @@ private class BleClockSession(
 
     override val isConnected: StateFlow<Boolean> = client.connected
 
+    // La scala /100 della notifica viene da clOwOck e potrebbe dipendere dal firmware: meglio niente che un valore assurdo.
+    override val liveSensor: Flow<SensorData> = client.sensor.filter { it.isPlausible() }
+
     override suspend fun load(): Result<ClockSnapshot> = call {
         client.connect()
         ClockSnapshot(
             settings = client.readSettings(),
             alarms = client.readAlarms(),
             firmware = optional { client.readFirmware() },
-            battery = optional { client.readBattery() },
         )
     }
 
@@ -123,6 +127,8 @@ private class BleClockSession(
 
     override suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit> =
         call { client.uploadRingtone(pcm, signature, onProgress) }
+
+    override suspend fun previewRingtone(volume: Int): Result<Unit> = call { client.previewRingtone(volume) }
 
     override suspend fun syncTime(): Result<Unit> = call { client.syncTime() }
 
@@ -148,6 +154,9 @@ private class BleClockSession(
         Log.w(TAG, "optional read failed", e)
         null
     }
+
+    private fun SensorData.isPlausible(): Boolean =
+        (temperature == null || temperature in -30.0..60.0) && (humidity == null || humidity in 0.0..100.0)
 
     private fun Exception.toClockError(): ClockError = when (this) {
         is Cgd1AuthException -> ClockError.AuthRejected(this)

@@ -10,10 +10,12 @@ import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
 import it.cgd1.sveglia.data.ringtone.CurrentRingtone
 import it.cgd1.sveglia.data.ringtone.CustomRingtone
 import it.cgd1.sveglia.data.ringtone.CustomSlots
+import it.cgd1.sveglia.data.ringtone.OriginalRingtone
 import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.Cgd1
 import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.protocol.Language
+import it.cgd1.sveglia.protocol.SensorData
 import it.cgd1.sveglia.protocol.toHex
 import it.cgd1.sveglia.ui.UiText
 import kotlinx.coroutines.Dispatchers
@@ -54,7 +56,7 @@ class MainViewModelTest {
     private val existing = Alarm(enabled = true, hour = 7, minute = 0, days = emptySet(), snooze = false)
     private val alarms = List(Cgd1.ALARM_SLOT_COUNT) { if (it == 0) existing else Alarm.EMPTY }
 
-    private val repository = FakeClockRepository(ClockSnapshot(settings, alarms, firmware = "1.0", battery = 80))
+    private val repository = FakeClockRepository(ClockSnapshot(settings, alarms, firmware = "1.0"))
     private val bliss = BuiltInRingtone("bliss", "Bliss", "Canonical Ltd.", "CC BY-SA 3.0", rawRes = 0, signatureHex = "4f430003")
     private val ringtones = FakeRingtoneRepository(listOf(bliss))
     private val player = FakeRingtonePlayer()
@@ -130,7 +132,7 @@ class MainViewModelTest {
         vm.onSelectRingtone(bliss.id)
         advanceUntilIdle()
         val (pcm, signature) = repository.session.uploads.single()
-        assertArrayEquals(ringtones.loadPcm(bliss), pcm)
+        assertArrayEquals(ringtones.loadPcm(bliss).getOrThrow(), pcm)
         assertArrayEquals(bliss.signature, signature)
         assertArrayEquals(bliss.signature, repository.session.writtenSettings.last().ringtoneSignature)
         assertEquals(CurrentRingtone.BuiltIn(bliss), vm.uiState.value.currentRingtone)
@@ -158,5 +160,47 @@ class MainViewModelTest {
         advanceUntilIdle()
         assertNull(player.playing)
         assertNull(vm.uiState.value.previewingRingtoneId)
+    }
+
+    @Test fun batteryComesOnlyFromTheAdvertisement() = runTest(dispatcher) {
+        repository.scanResults.tryEmit(clock.copy(sensor = SensorData(21.5, 40.0, battery = 63)))
+        val vm = MainViewModel(repository, ringtones, player)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.onOpenSaved(SavedClock(clock.address, clock.name))
+        advanceUntilIdle()
+        val readings = vm.uiState.value.readings
+        assertEquals(63, readings.battery)
+        assertEquals(21.5, readings.temperature!!, 0.0)
+    }
+
+    @Test fun liveSensorUpdatesTemperatureButKeepsBattery() = runTest(dispatcher) {
+        val vm = MainViewModel(repository, ringtones, player)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.uiState.collect {} }
+        vm.onOpenFound(clock.copy(sensor = SensorData(20.0, 50.0, battery = 70)))
+        advanceUntilIdle()
+        repository.session.liveSensor.emit(SensorData(22.3, 45.0, battery = null))
+        advanceUntilIdle()
+        val readings = vm.uiState.value.readings
+        assertEquals(22.3, readings.temperature!!, 0.0)
+        assertEquals(70, readings.battery)
+    }
+
+    @Test fun originalRingtonesAreLoadedAndSelectable() = runTest(dispatcher) {
+        val cuckoo = OriginalRingtone("ea2d4c02", "Cuckoo", "https://qingfseu.cleargrass.com/rings/ea2d4c02.pcm")
+        ringtones.originals = Result.success(listOf(cuckoo))
+        val vm = openedViewModel()
+        vm.onLoadOriginalRingtones()
+        advanceUntilIdle()
+        vm.onSelectRingtone(cuckoo.id)
+        advanceUntilIdle()
+        assertEquals("ea2d4c02", repository.session.uploads.single().second.toHex())
+        assertEquals(CurrentRingtone.Original("Cuckoo"), vm.uiState.value.currentRingtone)
+    }
+
+    @Test fun playOnClockSendsThePreviewCommand() = runTest(dispatcher) {
+        val vm = openedViewModel()
+        vm.onPlayOnClock()
+        advanceUntilIdle()
+        assertEquals(1, repository.session.clockPreviews)
     }
 }

@@ -35,13 +35,10 @@
     <string name="scan_nearby">Nearby clocks</string>
     <string name="scan_in_progress">Searching… keep the phone close to the clock.</string>
     <string name="scan_idle_hint">Tap “Search” to find the clock.</string>
-    <string name="scan_first_time_title">First time?</string>
-    <string name="scan_first_time_body">The clock must be unlinked from Mi Home: remove it from that app, or hold the button until the Bluetooth icon blinks. On the first connection it will bind to this app.</string>
 
     <!-- Connection -->
     <string name="status_connecting">Connecting to the clock…</string>
     <string name="status_connected">Connected</string>
-    <string name="status_idle">Paused · reconnects on the next command</string>
     <string name="status_failed">Connection failed</string>
     <string name="status_rejected">Connection refused</string>
     <string name="status_firmware">Firmware %1$s</string>
@@ -89,7 +86,6 @@
     <string name="settings_night_brightness">Night brightness</string>
     <string name="settings_night_start">Night starts</string>
     <string name="settings_night_end">Night ends</string>
-    <string name="settings_screen_light">Screen light: %1$d s</string>
     <string name="value_percent">%1$d%%</string>
 
     <!-- App settings -->
@@ -135,8 +131,51 @@
     <string name="ringtone_original">%1$s (Qingping)</string>
     <string name="ringtone_custom">Your ringtone</string>
     <string name="ringtone_unknown">Unknown</string>
-    <string name="ringtone_credits">Included ringtones come from lomiri-sounds (UBports) and are distributed under the license shown for each one; they have been converted to the clock\'s format.</string>
+    <string name="ringtone_credits">Included ringtones are Android Open Source Project alarm sounds (Apache 2.0), converted to the clock\'s format. Qingping originals are not part of the app: they are downloaded from Qingping\'s server only when you open this screen.</string>
     <string name="message_ringtone_set">Ringtone set</string>
     <string name="error_ringtone_unsupported">This audio file can\'t be read.</string>
     <string name="error_ringtone_empty">The audio file is empty.</string>
+
+    <!-- Dashboard -->
+    <string name="status_idle_short">Paused</string>
+    <string name="dashboard_temperature">Temperature</string>
+    <string name="dashboard_humidity">Humidity</string>
+    <string name="dashboard_celsius">%1$.1f°C</string>
+    <string name="dashboard_fahrenheit">%1$.1f°F</string>
+    <string name="dashboard_percent">%1$.0f%%</string>
+    <string name="dashboard_battery">Battery %1$d%%</string>
+    <string name="dashboard_no_readings">No readings yet: they arrive when the clock is nearby.</string>
+    <string name="dashboard_updated">Updated at %1$s</string>
+    <string name="dashboard_updated_battery">Updated at %1$s · battery at %2$s</string>
+    <string name="settings_screen_light_title">Screen light duration</string>
+    <string name="value_seconds">%1$d s</string>
+
+    <!-- Welcome -->
+    <string name="welcome_skip">Skip</string>
+    <string name="welcome_next">Next</string>
+    <string name="welcome_start">Get started</string>
+    <string name="welcome_page">Page %1$d of %2$d</string>
+    <string name="welcome_intro_title">Welcome to OpenCGD1</string>
+    <string name="welcome_intro_body">Control your Qingping CGD1 alarm clock directly over Bluetooth: alarms, time, ringtone and settings. No account, no cloud, no Mi Home.</string>
+    <string name="welcome_prepare_title">Prepare the clock</string>
+    <string name="welcome_prepare_body">The clock accepts only one app at a time. If you have used it with Mi Home or Qingping+, it has to be released first.</string>
+    <string name="welcome_prepare_step_1">Remove the clock from Mi Home or Qingping+.</string>
+    <string name="welcome_prepare_step_2">Or hold the clock\'s button until the Bluetooth icon blinks.</string>
+    <string name="welcome_prepare_step_3">On the first connection the clock binds to OpenCGD1, and Mi Home will no longer see it.</string>
+    <string name="welcome_permission_title">Bluetooth permission</string>
+    <string name="welcome_permission_body">It is used only to find the clock and talk to it. The app does not use your location.</string>
+    <string name="welcome_permission_granted">Permission granted</string>
+    <string name="welcome_ready_title">All set</string>
+    <string name="welcome_ready_body">Keep the phone close to the clock: the app will look for it by itself. You can see this guide again from Settings.</string>
+    <string name="app_settings_help">Help</string>
+    <string name="app_settings_show_welcome">Getting started guide</string>
+    <string name="app_settings_show_welcome_hint">See again how to prepare and connect the clock</string>
+
+    <!-- Original ringtones -->
+    <string name="ringtone_original_section">Qingping originals</string>
+    <string name="ringtone_original_source">Downloaded from Qingping\'s server</string>
+    <string name="ringtone_original_loading">Loading the list from Qingping…</string>
+    <string name="ringtone_original_failed">Couldn\'t reach Qingping\'s server. Check your connection.</string>
+    <string name="ringtone_play_on_clock">Play on the clock</string>
+    <string name="error_ringtone_download">Download failed. Check your connection.</string>
 </resources>

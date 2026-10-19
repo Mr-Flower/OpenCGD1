@@ -9,9 +9,9 @@ import it.cgd1.sveglia.data.ClockError
 import it.cgd1.sveglia.data.ClockRepository
 import it.cgd1.sveglia.data.ClockSession
 import it.cgd1.sveglia.data.SavedClock
-import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
 import it.cgd1.sveglia.data.ringtone.CustomSlots
 import it.cgd1.sveglia.data.ringtone.RingtoneError
+import it.cgd1.sveglia.data.ringtone.RingtoneOption
 import it.cgd1.sveglia.data.ringtone.RingtonePlayer
 import it.cgd1.sveglia.data.ringtone.RingtoneRepository
 import it.cgd1.sveglia.protocol.Alarm
@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -49,6 +50,7 @@ import java.time.ZoneId
 import javax.inject.Inject
 
 private const val SCAN_TIMEOUT_MS = 30_000L
+private const val ADVERTISEMENT_TIMEOUT_MS = 4_000L
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -120,6 +122,9 @@ class MainViewModel @Inject constructor(
         val scope = CoroutineScope(viewModelScope.coroutineContext + SupervisorJob(viewModelScope.coroutineContext.job))
         session = newSession
         sessionScope = scope
+        newSession.liveSensor
+            .onEach { sensor -> state.update { it.copy(readings = it.readings.withLive(sensor, System.currentTimeMillis())) } }
+            .launchIn(scope)
         newSession.isConnected
             .onEach { connected ->
                 // Durante il collegamento decide l'operazione in corso; un errore resta visibile finché un comando non riesce.
@@ -135,11 +140,12 @@ class MainViewModel @Inject constructor(
             .launchIn(scope)
         state.update {
             it.copy(
-                openClock = clock, sensor = sensor, connection = ConnectionState.Connecting, isBusy = false,
-                settings = null, alarms = emptyList(), firmware = null, battery = null,
+                openClock = clock, connection = ConnectionState.Connecting, isBusy = false,
+                settings = null, alarms = emptyList(), firmware = null,
+                readings = sensor?.let { s -> ClockReadings().withAdvertisement(s, System.currentTimeMillis()) } ?: ClockReadings(),
             )
         }
-        load(syncClock = true)
+        load(syncClock = true, readAdvertisement = sensor?.battery == null)
     }
 
     override fun onCloseClock() {
@@ -156,22 +162,36 @@ class MainViewModel @Inject constructor(
         session = null
     }
 
-    override fun onRefresh() = load(syncClock = false)
+    // Da scollegata la sveglia trasmette di nuovo gli advertisement: è l'occasione per aggiornare la batteria.
+    override fun onRefresh() = load(syncClock = false, readAdvertisement = state.value.connection != ConnectionState.Connected)
 
-    override fun onRetry() = load(syncClock = true)
+    override fun onRetry() = load(syncClock = true, readAdvertisement = state.value.readings.battery == null)
 
-    private fun load(syncClock: Boolean) = op(connecting = true) { s, update ->
+    private fun load(syncClock: Boolean, readAdvertisement: Boolean) = op(connecting = true) { s, update ->
+        if (readAdvertisement) readAdvertisement(update)
         val snapshot = s.load().getOrThrow()
         update {
             it.copy(
                 settings = snapshot.settings,
                 alarms = snapshot.alarms,
                 firmware = snapshot.firmware,
-                battery = snapshot.battery ?: it.battery,
                 connection = ConnectionState.Connected,
             )
         }
         if (syncClock) syncTime(s, snapshot.settings, update)
+    }
+
+    /** La batteria si legge solo dall'advertisement, che la sveglia smette di trasmettere appena ci si collega. */
+    private suspend fun readAdvertisement(update: StateUpdater) {
+        val address = state.value.openClock?.address ?: return
+        val found = withTimeoutOrNull(ADVERTISEMENT_TIMEOUT_MS) {
+            repository.scan()
+                .catch { }
+                .firstOrNull { it.address == address && it.sensor != null }
+        }
+        found?.sensor?.let { sensor ->
+            update { it.copy(readings = it.readings.withAdvertisement(sensor, System.currentTimeMillis())) }
+        }
     }
 
     override fun onSyncTime() = op { s, update ->
@@ -231,22 +251,42 @@ class MainViewModel @Inject constructor(
         update { it.copy(settings = next) }
     }
 
+    override fun onLoadOriginalRingtones() {
+        val current = state.value.originalRingtones
+        if (current is OriginalRingtonesState.Loading || current is OriginalRingtonesState.Loaded) return
+        viewModelScope.launch {
+            state.update { it.copy(originalRingtones = OriginalRingtonesState.Loading) }
+            val result = ringtones.originals()
+            state.update {
+                it.copy(originalRingtones = result.fold({ list -> OriginalRingtonesState.Loaded(list) }, { OriginalRingtonesState.Failed }))
+            }
+        }
+    }
+
+    override fun onPlayOnClock() = op { s, _ ->
+        val volume = state.value.settings?.volume ?: return@op
+        s.previewRingtone(volume).getOrThrow()
+    }
+
     override fun onPreviewRingtone(id: String) {
-        val ringtone = builtIn(id) ?: return
+        val ringtone = ringtoneOption(id) ?: return
         preview(id) { ringtones.loadPcm(ringtone) }
     }
 
     override fun onPreviewCustomRingtone() {
         val pcm = customPcm ?: return
-        preview(CUSTOM_RINGTONE_PREVIEW_ID) { pcm }
+        preview(CUSTOM_RINGTONE_PREVIEW_ID) { Result.success(pcm) }
     }
 
-    private fun preview(id: String, load: suspend () -> ByteArray) {
+    private fun preview(id: String, load: suspend () -> Result<ByteArray>) {
         val previous = previewJob
         previewJob = viewModelScope.launch {
             // Il finally della vecchia anteprima chiama stop(): va atteso prima di far partire la nuova.
             previous?.cancelAndJoin()
-            val pcm = load()
+            val pcm = load().getOrElse { e ->
+                showMessage(e.toMessage())
+                return@launch
+            }
             state.update { it.copy(previewingRingtoneId = id) }
             try {
                 player.play(pcm)
@@ -263,10 +303,10 @@ class MainViewModel @Inject constructor(
     }
 
     override fun onSelectRingtone(id: String) {
-        val ringtone = builtIn(id) ?: return
+        val ringtone = ringtoneOption(id) ?: return
         if (state.value.settings?.ringtoneSignature?.contentEquals(ringtone.signature) == true) return
         onStopPreview()
-        uploadRingtone(ringtone.signature, onDone = {}) { ringtones.loadPcm(ringtone) }
+        uploadRingtone(ringtone.signature, onDone = {}) { ringtones.loadPcm(ringtone).getOrThrow() }
     }
 
     override fun onCustomRingtonePicked(uri: String) {
@@ -317,7 +357,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun builtIn(id: String): BuiltInRingtone? = state.value.builtInRingtones.firstOrNull { it.id == id }
+    private fun ringtoneOption(id: String): RingtoneOption? {
+        val originals = (state.value.originalRingtones as? OriginalRingtonesState.Loaded)?.ringtones.orEmpty()
+        return (state.value.builtInRingtones + originals).firstOrNull { it.id == id }
+    }
 
     /**
      * Esegue un'operazione sulla sveglia aperta, una alla volta. Ogni modifica allo stato passa
@@ -339,6 +382,8 @@ class MainViewModel @Inject constructor(
                     } else {
                         showMessage(e.toMessage())
                     }
+                } catch (e: RingtoneError) {
+                    showMessage(e.toMessage())
                 } finally {
                     update { it.copy(isBusy = false) }
                 }
@@ -381,5 +426,6 @@ private fun Throwable.toMessage(): UiText = when (this) {
     is ClockError.Command -> UiText(R.string.error_command)
     is RingtoneError.Empty -> UiText(R.string.error_ringtone_empty)
     is RingtoneError.Unsupported -> UiText(R.string.error_ringtone_unsupported)
+    is RingtoneError.Network -> UiText(R.string.error_ringtone_download)
     else -> UiText(R.string.error_connection)
 }

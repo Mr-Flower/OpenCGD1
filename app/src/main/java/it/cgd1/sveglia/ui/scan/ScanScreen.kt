@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -27,7 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -116,7 +114,6 @@ fun ScanScreen(
             items(state.foundClocks, key = { it.address }) { found ->
                 FoundClockCard(found, onClick = { actions.onOpenFound(found) }, modifier = Modifier.animateItem())
             }
-            item(key = "help") { FirstTimeCard() }
         }
     }
 }
@@ -182,18 +179,6 @@ private fun FoundClockCard(clock: FoundClock, onClick: () -> Unit, modifier: Mod
                     clock.sensor?.let { Text(sensorLabel(it, null)) }
                 }
             },
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        )
-    }
-}
-
-@Composable
-private fun FirstTimeCard() {
-    OutlinedCard(modifier = Modifier.contentWidth()) {
-        ListItem(
-            leadingContent = { Icon(Icons.Filled.Info, contentDescription = null, tint = MaterialTheme.colorScheme.secondary) },
-            headlineContent = { Text(stringResource(R.string.scan_first_time_title)) },
-            supportingContent = { Text(stringResource(R.string.scan_first_time_body)) },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         )
     }

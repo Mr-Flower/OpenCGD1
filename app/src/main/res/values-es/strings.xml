@@ -28,13 +28,10 @@
     <string name="scan_nearby">Relojes cercanos</string>
     <string name="scan_in_progress">Buscando… mantén el teléfono cerca del reloj.</string>
     <string name="scan_idle_hint">Toca «Buscar» para encontrar el reloj.</string>
-    <string name="scan_first_time_title">¿Primera vez?</string>
-    <string name="scan_first_time_body">El reloj debe desvincularse de Mi Home: elimínalo de esa app o mantén pulsado el botón hasta que parpadee el icono de Bluetooth. En la primera conexión se vinculará a esta app.</string>
 
     <!-- Connection -->
     <string name="status_connecting">Conectando con el reloj…</string>
     <string name="status_connected">Conectado</string>
-    <string name="status_idle">En pausa · se reconecta con el siguiente comando</string>
     <string name="status_failed">Error de conexión</string>
     <string name="status_rejected">Conexión rechazada</string>
     <string name="status_firmware">Firmware %1$s</string>
@@ -82,7 +79,6 @@
     <string name="settings_night_brightness">Brillo de noche</string>
     <string name="settings_night_start">Inicio de la noche</string>
     <string name="settings_night_end">Fin de la noche</string>
-    <string name="settings_screen_light">Luz de pantalla: %1$d s</string>
     <string name="value_percent">%1$d %%</string>
 
     <!-- App settings -->
@@ -128,8 +124,51 @@
     <string name="ringtone_original">%1$s (Qingping)</string>
     <string name="ringtone_custom">Tu tono</string>
     <string name="ringtone_unknown">Desconocido</string>
-    <string name="ringtone_credits">Los tonos incluidos proceden de lomiri-sounds (UBports) y se distribuyen con la licencia indicada en cada uno; se han convertido al formato del reloj.</string>
+    <string name="ringtone_credits">Los tonos incluidos son sonidos de alarma del Android Open Source Project (Apache 2.0), convertidos al formato del reloj. Los originales de Qingping no forman parte de la app: se descargan del servidor de Qingping solo al abrir esta pantalla.</string>
     <string name="message_ringtone_set">Tono establecido</string>
     <string name="error_ringtone_unsupported">No se puede leer este archivo de audio.</string>
     <string name="error_ringtone_empty">El archivo de audio está vacío.</string>
+
+    <!-- Dashboard -->
+    <string name="status_idle_short">En pausa</string>
+    <string name="dashboard_temperature">Temperatura</string>
+    <string name="dashboard_humidity">Humedad</string>
+    <string name="dashboard_celsius">%1$.1f °C</string>
+    <string name="dashboard_fahrenheit">%1$.1f °F</string>
+    <string name="dashboard_percent">%1$.0f %%</string>
+    <string name="dashboard_battery">Batería %1$d %%</string>
+    <string name="dashboard_no_readings">Aún no hay lecturas: llegan cuando el reloj está cerca.</string>
+    <string name="dashboard_updated">Actualizado a las %1$s</string>
+    <string name="dashboard_updated_battery">Actualizado a las %1$s · batería a las %2$s</string>
+    <string name="settings_screen_light_title">Duración de la luz de pantalla</string>
+    <string name="value_seconds">%1$d s</string>
+
+    <!-- Welcome -->
+    <string name="welcome_skip">Omitir</string>
+    <string name="welcome_next">Siguiente</string>
+    <string name="welcome_start">Empezar</string>
+    <string name="welcome_page">Página %1$d de %2$d</string>
+    <string name="welcome_intro_title">Te damos la bienvenida a OpenCGD1</string>
+    <string name="welcome_intro_body">Controla tu reloj despertador Qingping CGD1 directamente por Bluetooth: alarmas, hora, tono y ajustes. Sin cuenta, sin nube, sin Mi Home.</string>
+    <string name="welcome_prepare_title">Prepara el reloj</string>
+    <string name="welcome_prepare_body">El reloj solo acepta una app a la vez. Si lo has usado con Mi Home o Qingping+, primero hay que liberarlo.</string>
+    <string name="welcome_prepare_step_1">Elimina el reloj de Mi Home o Qingping+.</string>
+    <string name="welcome_prepare_step_2">O mantén pulsado el botón del reloj hasta que parpadee el icono de Bluetooth.</string>
+    <string name="welcome_prepare_step_3">En la primera conexión el reloj se vincula a OpenCGD1 y Mi Home dejará de verlo.</string>
+    <string name="welcome_permission_title">Permiso de Bluetooth</string>
+    <string name="welcome_permission_body">Solo sirve para encontrar el reloj y comunicarse con él. La app no usa tu ubicación.</string>
+    <string name="welcome_permission_granted">Permiso concedido</string>
+    <string name="welcome_ready_title">Todo listo</string>
+    <string name="welcome_ready_body">Mantén el teléfono cerca del reloj: la app lo buscará sola. Puedes volver a ver esta guía desde Ajustes.</string>
+    <string name="app_settings_help">Ayuda</string>
+    <string name="app_settings_show_welcome">Guía de inicio</string>
+    <string name="app_settings_show_welcome_hint">Vuelve a ver cómo preparar y conectar el reloj</string>
+
+    <!-- Original ringtones -->
+    <string name="ringtone_original_section">Originales de Qingping</string>
+    <string name="ringtone_original_source">Descargado del servidor de Qingping</string>
+    <string name="ringtone_original_loading">Cargando la lista desde Qingping…</string>
+    <string name="ringtone_original_failed">No se pudo conectar con el servidor de Qingping. Revisa la conexión.</string>
+    <string name="ringtone_play_on_clock">Hacer sonar el reloj</string>
+    <string name="error_ringtone_download">Error en la descarga. Revisa la conexión.</string>
 </resources>

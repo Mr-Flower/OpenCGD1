@@ -23,6 +23,7 @@ class AppPreferencesRepository @Inject constructor(private val dataStore: DataSt
                 themeMode = prefs[KEY_THEME]?.let { name -> ThemeMode.entries.firstOrNull { it.name == name } }
                     ?: ThemeMode.SYSTEM,
                 useDynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: true,
+                onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
             )
         }
 
@@ -34,8 +35,13 @@ class AppPreferencesRepository @Inject constructor(private val dataStore: DataSt
         dataStore.edit { it[KEY_DYNAMIC_COLOR] = enabled }
     }
 
+    suspend fun setOnboardingCompleted(completed: Boolean) {
+        dataStore.edit { it[KEY_ONBOARDING_COMPLETED] = completed }
+    }
+
     private companion object {
         val KEY_THEME = stringPreferencesKey("theme_mode")
         val KEY_DYNAMIC_COLOR = booleanPreferencesKey("dynamic_color")
+        val KEY_ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     }
 }

@@ -28,13 +28,10 @@
     <string name="scan_nearby">Sveglie nelle vicinanze</string>
     <string name="scan_in_progress">Ricerca in corso… tieni il telefono vicino alla sveglia.</string>
     <string name="scan_idle_hint">Premi «Cerca» per trovare la sveglia.</string>
-    <string name="scan_first_time_title">Prima volta?</string>
-    <string name="scan_first_time_body">La sveglia deve essere scollegata da Mi Home: rimuovila dall\'app oppure tieni premuto il pulsante finché l\'icona Bluetooth lampeggia. Al primo collegamento si legherà a questa app.</string>
 
     <!-- Connection -->
     <string name="status_connecting">Collegamento alla sveglia…</string>
     <string name="status_connected">Collegata</string>
-    <string name="status_idle">In pausa · si ricollega al prossimo comando</string>
     <string name="status_failed">Collegamento non riuscito</string>
     <string name="status_rejected">Collegamento rifiutato</string>
     <string name="status_firmware">Firmware %1$s</string>
@@ -82,7 +79,6 @@
     <string name="settings_night_brightness">Luminosità di notte</string>
     <string name="settings_night_start">Inizio notte</string>
     <string name="settings_night_end">Fine notte</string>
-    <string name="settings_screen_light">Luce schermo: %1$d s</string>
     <string name="value_percent">%1$d %%</string>
 
     <!-- App settings -->
@@ -128,8 +124,51 @@
     <string name="ringtone_original">%1$s (Qingping)</string>
     <string name="ringtone_custom">La tua suoneria</string>
     <string name="ringtone_unknown">Sconosciuta</string>
-    <string name="ringtone_credits">Le suonerie incluse provengono da lomiri-sounds (UBports) e sono distribuite con la licenza indicata per ciascuna; sono state convertite nel formato della sveglia.</string>
+    <string name="ringtone_credits">Le suonerie incluse sono suoni di allarme dell\'Android Open Source Project (Apache 2.0), convertiti nel formato della sveglia. Le originali Qingping non fanno parte dell\'app: si scaricano dal server Qingping solo quando apri questa schermata.</string>
     <string name="message_ringtone_set">Suoneria impostata</string>
     <string name="error_ringtone_unsupported">Impossibile leggere questo file audio.</string>
     <string name="error_ringtone_empty">Il file audio è vuoto.</string>
+
+    <!-- Dashboard -->
+    <string name="status_idle_short">In pausa</string>
+    <string name="dashboard_temperature">Temperatura</string>
+    <string name="dashboard_humidity">Umidità</string>
+    <string name="dashboard_celsius">%1$.1f°C</string>
+    <string name="dashboard_fahrenheit">%1$.1f°F</string>
+    <string name="dashboard_percent">%1$.0f%%</string>
+    <string name="dashboard_battery">Batteria %1$d%%</string>
+    <string name="dashboard_no_readings">Nessuna lettura ancora: arriva quando la sveglia è vicina.</string>
+    <string name="dashboard_updated">Aggiornato alle %1$s</string>
+    <string name="dashboard_updated_battery">Aggiornato alle %1$s · batteria alle %2$s</string>
+    <string name="settings_screen_light_title">Durata luce schermo</string>
+    <string name="value_seconds">%1$d s</string>
+
+    <!-- Welcome -->
+    <string name="welcome_skip">Salta</string>
+    <string name="welcome_next">Avanti</string>
+    <string name="welcome_start">Inizia</string>
+    <string name="welcome_page">Pagina %1$d di %2$d</string>
+    <string name="welcome_intro_title">Benvenuto in OpenCGD1</string>
+    <string name="welcome_intro_body">Comanda la tua sveglia Qingping CGD1 direttamente via Bluetooth: sveglie, ora, suoneria e impostazioni. Niente account, niente cloud, niente Mi Home.</string>
+    <string name="welcome_prepare_title">Prepara la sveglia</string>
+    <string name="welcome_prepare_body">La sveglia accetta una sola app alla volta. Se l\'hai usata con Mi Home o Qingping+, va prima liberata.</string>
+    <string name="welcome_prepare_step_1">Rimuovi la sveglia da Mi Home o Qingping+.</string>
+    <string name="welcome_prepare_step_2">Oppure tieni premuto il pulsante della sveglia finché l\'icona Bluetooth lampeggia.</string>
+    <string name="welcome_prepare_step_3">Al primo collegamento la sveglia si lega a OpenCGD1 e Mi Home non la vedrà più.</string>
+    <string name="welcome_permission_title">Permesso Bluetooth</string>
+    <string name="welcome_permission_body">Serve solo per trovare la sveglia e parlarle. L\'app non usa la tua posizione.</string>
+    <string name="welcome_permission_granted">Permesso concesso</string>
+    <string name="welcome_ready_title">Tutto pronto</string>
+    <string name="welcome_ready_body">Tieni il telefono vicino alla sveglia: l\'app la cercherà da sola. Puoi rivedere questa guida dalle Impostazioni.</string>
+    <string name="app_settings_help">Aiuto</string>
+    <string name="app_settings_show_welcome">Guida introduttiva</string>
+    <string name="app_settings_show_welcome_hint">Rivedi come preparare e collegare la sveglia</string>
+
+    <!-- Original ringtones -->
+    <string name="ringtone_original_section">Originali Qingping</string>
+    <string name="ringtone_original_source">Scaricata dal server Qingping</string>
+    <string name="ringtone_original_loading">Caricamento dell\'elenco da Qingping…</string>
+    <string name="ringtone_original_failed">Impossibile raggiungere il server Qingping. Controlla la connessione.</string>
+    <string name="ringtone_play_on_clock">Fai suonare la sveglia</string>
+    <string name="error_ringtone_download">Download non riuscito. Controlla la connessione.</string>
 </resources>

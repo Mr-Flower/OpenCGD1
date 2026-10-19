@@ -32,6 +32,8 @@ interface ClockActions {
 
 @Stable
 interface RingtoneActions {
+    fun onLoadOriginalRingtones()
+    fun onPlayOnClock()
     fun onPreviewRingtone(id: String)
     fun onPreviewCustomRingtone()
     fun onStopPreview()

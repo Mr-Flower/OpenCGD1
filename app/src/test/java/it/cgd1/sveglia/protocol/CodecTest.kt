@@ -145,6 +145,18 @@ class CodecTest {
 
     @Test fun shortFrameReturnsNull() = assertNull(Codec.parseAdvertisement(hex("880c5238")))
 
+    @Test fun batteryHighBitIsMasked() =
+        assertEquals(80, Codec.parseAdvertisement(hex("880c523886342d580104c80005020201d0"))!!.battery)
+
+    @Test fun batteryIsFoundByTypeNotByPosition() {
+        val r = Codec.parseAdvertisement(hex("880c523886342d58020157"))!!
+        assertEquals(87, r.battery)
+        assertNull(r.temperature)
+    }
+
+    @Test fun truncatedTlvIsIgnored() =
+        assertNull(Codec.parseAdvertisement(hex("880c523886342d580104c800")))
+
 
     @Test fun parseConnectedValues() {
         val r = Codec.parseConnectedSensor(hex("002e09c611"))

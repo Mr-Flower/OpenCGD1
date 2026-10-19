@@ -44,6 +44,7 @@ import it.cgd1.sveglia.ui.scan.ScanScreen
 import it.cgd1.sveglia.ui.settings.AppSettingsActions
 import it.cgd1.sveglia.ui.settings.AppSettingsScreen
 import it.cgd1.sveglia.ui.settings.AppSettingsUiState
+import it.cgd1.sveglia.ui.welcome.WelcomeScreen
 
 private val BLUETOOTH_PERMISSIONS: Array<String> =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -95,6 +96,12 @@ fun OpenCgd1App(
 
     val modifier = Modifier.fillMaxSize()
     when {
+        !settingsState.preferences.onboardingCompleted -> WelcomeScreen(
+            permissionsGranted = permissionsGranted,
+            onRequestPermissions = { permissionLauncher.launch(BLUETOOTH_PERMISSIONS) },
+            onFinish = settingsActions::onCompleteOnboarding,
+            modifier = modifier,
+        )
         showSettings -> AppSettingsScreen(
             state = settingsState,
             actions = settingsActions,

@@ -24,7 +24,6 @@ object Cgd1 {
     val DATA_WRITE_UUID: UUID = uuid16(0x000B)
     val DATA_NOTIFY_UUID: UUID = uuid16(0x000C)
     val SENSOR_NOTIFY_UUID: UUID = uuid16(0x0100)
-    val BATTERY_UUID: UUID = uuid16(0x2A19)
     val CCCD_UUID: UUID = uuid16(0x2902)
 
     val SERVICE_UUID: UUID = UUID.fromString("22210000-554a-4546-5542-46534450464d")
@@ -39,6 +38,7 @@ object Cgd1 {
     val CMD_SET_ALARM = hex("0705")
     val CMD_SET_SETTINGS = hex("1301")
     val CMD_BRIGHTNESS = hex("0203")
+    val CMD_PREVIEW_RINGTONE = hex("0204")
     val CMD_TIME_SYNC = hex("0509")
     val CMD_AUDIO_INIT = hex("0810")
     val CMD_AUDIO_DATA = hex("8108")

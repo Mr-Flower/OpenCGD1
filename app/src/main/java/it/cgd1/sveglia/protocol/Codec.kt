@@ -23,7 +23,10 @@ object Codec {
     // Advertisement 0xfdcd: frame, modello (0x0c), MAC (6), 2 ignoti, temp int16 LE,
     // umidità uint16 LE, 2 ignoti, batteria. Scala /10.
     private const val ADV_MODEL = 0x0C
-    private const val ADV_MIN_LEN = 17
+    private const val ADV_TLV_START = 8
+    private const val ADV_TYPE_TEMP_HUMIDITY = 0x01
+    private const val ADV_TYPE_BATTERY = 0x02
+    private const val ADV_BATTERY_MASK = 0x7F
     private const val ADV_SCALE = 10.0
 
     // Notifica 0x0100 da connessi: scala /100 (diversa dall'advertisement!).
@@ -147,16 +150,33 @@ object Codec {
 
     /** Advertisement passivo fdcd; null se troppo corto o di un altro modello. */
     fun parseAdvertisement(serviceData: ByteArray): SensorData? {
-        if (serviceData.size < ADV_MIN_LEN) return null
-        if (serviceData.u(1) != ADV_MODEL) return null
-        return SensorData(
-            temperature = int16le(serviceData, 10) / ADV_SCALE,
-            humidity = uint16le(serviceData, 12) / ADV_SCALE,
-            battery = serviceData.u(16),
-        )
+        if (serviceData.size < ADV_TLV_START || serviceData.u(1) != ADV_MODEL) return null
+        var temperature: Double? = null
+        var humidity: Double? = null
+        var battery: Int? = null
+        // Dopo l'header (frame, modello, MAC) i dati sono blocchi tipo/lunghezza/valore:
+        // leggerli per tipo evita di prendere per batteria un byte che non lo è.
+        var i = ADV_TLV_START
+        while (i + 2 <= serviceData.size) {
+            val type = serviceData.u(i)
+            val length = serviceData.u(i + 1)
+            val start = i + 2
+            if (start + length > serviceData.size) break
+            when {
+                type == ADV_TYPE_TEMP_HUMIDITY && length >= 4 -> {
+                    temperature = int16le(serviceData, start) / ADV_SCALE
+                    humidity = uint16le(serviceData, start + 2) / ADV_SCALE
+                }
+                // Il bit 7 non fa parte della percentuale (cgd1-rs, Theengs).
+                type == ADV_TYPE_BATTERY && length >= 1 -> battery = serviceData.u(start) and ADV_BATTERY_MASK
+            }
+            i = start + length
+        }
+        if (temperature == null && battery == null) return null
+        return SensorData(temperature, humidity, battery)
     }
 
-    /** Notifica sensore 0x0100 (scala /100). La batteria non c'è: si legge da 0x2A19. */
+    /** Notifica sensore 0x0100 (scala /100). La batteria non c'è: arriva solo dagli advertisement. */
     fun parseConnectedSensor(d: ByteArray): SensorData {
         if (d.size < CONNECTED_MIN_LEN || d.u(0) != 0x00) {
             throw Cgd1CommandException("connected sensor frame must start 0x00 and be at least 5 bytes")

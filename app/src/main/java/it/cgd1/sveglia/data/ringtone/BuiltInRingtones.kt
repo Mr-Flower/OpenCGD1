@@ -2,24 +2,31 @@ package it.cgd1.sveglia.data.ringtone
 
 import it.cgd1.sveglia.R
 
-private const val CANONICAL = "Canonical Ltd."
-private const val CC_BY_SA_3 = "CC BY-SA 3.0"
+private const val AOSP = "The Android Open Source Project"
+private const val APACHE_2 = "Apache 2.0"
 
-// Suoni da lomiri-sounds (UBports): https://gitlab.com/ubports/development/core/lomiri-sounds
-// Le firme "4f43xxxx" ("OC" + indice) sono di OpenCGD1 e non vanno mai riassegnate a un altro suono.
+private fun aosp(id: String, name: String, rawRes: Int, signatureHex: String) =
+    BuiltInRingtone(id, name, AOSP, APACHE_2, rawRes, signatureHex)
+
+// Suoni di allarme di AOSP (frameworks/base/data/sounds), pensati per svegliare e ricchi di acuti come le
+// suonerie Qingping. Le firme "4f4301xx" sono di OpenCGD1: non vanno mai riassegnate a un altro suono.
 val BUILT_IN_RINGTONES: List<BuiltInRingtone> = listOf(
-    BuiltInRingtone("alarm_clock", "Alarm Clock", CANONICAL, CC_BY_SA_3, R.raw.ringtone_alarm_clock, "4f430001"),
-    BuiltInRingtone("alarm_synth", "Alarm Synth", CANONICAL, CC_BY_SA_3, R.raw.ringtone_alarm_synth, "4f430002"),
-    BuiltInRingtone("bliss", "Bliss", CANONICAL, CC_BY_SA_3, R.raw.ringtone_bliss, "4f430003"),
-    BuiltInRingtone("call_me", "Call Me", "Anonymous", "CC0 1.0", R.raw.ringtone_call_me, "4f430004"),
-    BuiltInRingtone("celestial", "Celestial", CANONICAL, CC_BY_SA_3, R.raw.ringtone_celestial, "4f430005"),
-    BuiltInRingtone("counterpoint", "Counterpoint", CANONICAL, CC_BY_SA_3, R.raw.ringtone_counterpoint, "4f430006"),
-    BuiltInRingtone("glass_marimba", "Glass Marimba", CANONICAL, CC_BY_SA_3, R.raw.ringtone_glass_marimba, "4f430007"),
-    BuiltInRingtone("harp_arp", "Harp Arp", CANONICAL, CC_BY_SA_3, R.raw.ringtone_harp_arp, "4f430008"),
-    BuiltInRingtone("koto_chords", "Koto Chords", CANONICAL, CC_BY_SA_3, R.raw.ringtone_koto_chords, "4f430009"),
-    BuiltInRingtone("melody_piano", "Melody Piano", CANONICAL, CC_BY_SA_3, R.raw.ringtone_melody_piano, "4f43000a"),
-    BuiltInRingtone("sparkle", "Sparkle", CANONICAL, CC_BY_SA_3, R.raw.ringtone_sparkle, "4f43000b"),
-    BuiltInRingtone("time_not_lost", "Time Not Lost", "Mauricio Duarte", "CC BY 4.0", R.raw.ringtone_time_not_lost, "4f43000c"),
-    BuiltInRingtone("ubports", "UBports", "Mauricio Duarte", "CC BY 4.0", R.raw.ringtone_ubports, "4f43000d"),
-    BuiltInRingtone("wooden_drive", "Wooden Drive", "Amber Forest", "CC BY 3.0", R.raw.ringtone_wooden_drive, "4f43000e"),
+    aosp("beep_1", "Beep 1", R.raw.ringtone_beep_1, "4f430101"),
+    aosp("beep_2", "Beep 2", R.raw.ringtone_beep_2, "4f430102"),
+    aosp("buzzer", "Buzzer", R.raw.ringtone_buzzer, "4f430103"),
+    aosp("classic", "Classic", R.raw.ringtone_classic, "4f430104"),
+    aosp("rooster", "Rooster", R.raw.ringtone_rooster, "4f430105"),
+    aosp("argon", "Argon", R.raw.ringtone_argon, "4f430106"),
+    aosp("barium", "Barium", R.raw.ringtone_barium, "4f430107"),
+    aosp("carbon", "Carbon", R.raw.ringtone_carbon, "4f430108"),
+    aosp("helium", "Helium", R.raw.ringtone_helium, "4f430109"),
+    aosp("krypton", "Krypton", R.raw.ringtone_krypton, "4f43010a"),
+    aosp("osmium", "Osmium", R.raw.ringtone_osmium, "4f43010b"),
+    aosp("platinum", "Platinum", R.raw.ringtone_platinum, "4f43010c"),
+    aosp("scandium", "Scandium", R.raw.ringtone_scandium, "4f43010d"),
+    aosp("awaken", "Awaken", R.raw.ringtone_awaken, "4f43010e"),
+    aosp("drip", "Drip", R.raw.ringtone_drip, "4f43010f"),
+    aosp("nudge", "Nudge", R.raw.ringtone_nudge, "4f430110"),
+    aosp("orbit", "Orbit", R.raw.ringtone_orbit, "4f430111"),
+    aosp("rise", "Rise", R.raw.ringtone_rise, "4f430112"),
 )

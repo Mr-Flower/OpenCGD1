@@ -46,6 +46,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,12 +62,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import it.cgd1.sveglia.R
 import it.cgd1.sveglia.data.ringtone.BUILT_IN_RINGTONES
-import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
 import it.cgd1.sveglia.data.ringtone.CurrentRingtone
+import it.cgd1.sveglia.data.ringtone.RingtoneOption
+import it.cgd1.sveglia.protocol.toHex
 import it.cgd1.sveglia.ui.components.SectionHeader
 import it.cgd1.sveglia.ui.main.CUSTOM_RINGTONE_PREVIEW_ID
 import it.cgd1.sveglia.ui.main.CustomRingtoneInfo
 import it.cgd1.sveglia.ui.main.MainUiState
+import it.cgd1.sveglia.ui.main.OriginalRingtonesState
 import it.cgd1.sveglia.ui.main.RingtoneActions
 import it.cgd1.sveglia.ui.theme.OpenCgd1Theme
 import kotlin.math.roundToInt
@@ -82,6 +85,7 @@ fun RingtoneScreen(
 ) {
     BackHandler(onBack = onBack)
     DisposableEffect(actions) { onDispose { actions.onStopPreview() } }
+    LaunchedEffect(actions) { actions.onLoadOriginalRingtones() }
     val pickFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { actions.onCustomRingtonePicked(it.toString()) }
     }
@@ -114,7 +118,13 @@ fun RingtoneScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item(key = "current") {
-                CurrentRingtoneCard(current, state.ringtoneUploadProgress, Modifier.contentWidth())
+                CurrentRingtoneCard(
+                    current = current,
+                    uploadProgress = state.ringtoneUploadProgress,
+                    canPlayOnClock = canChange && !uploading,
+                    onPlayOnClock = actions::onPlayOnClock,
+                    modifier = Modifier.contentWidth(),
+                )
             }
             item(key = "custom-header") {
                 SectionHeader(stringResource(R.string.ringtone_custom_section), Modifier.contentWidth())
@@ -130,18 +140,49 @@ fun RingtoneScreen(
                     modifier = Modifier.contentWidth(),
                 )
             }
+            item(key = "original-header") {
+                SectionHeader(stringResource(R.string.ringtone_original_section), Modifier.contentWidth())
+            }
+            when (val originals = state.originalRingtones) {
+                is OriginalRingtonesState.Loaded -> items(originals.ringtones, key = { it.id }) { ringtone ->
+                    RingtoneRow(
+                        ringtone = ringtone,
+                        subtitle = stringResource(R.string.ringtone_original_source),
+                        state = state,
+                        enabled = canChange && !uploading,
+                        actions = actions,
+                        modifier = Modifier.contentWidth(),
+                    )
+                }
+                OriginalRingtonesState.Failed -> item(key = "original-failed") {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.contentWidth()) {
+                        Text(
+                            stringResource(R.string.ringtone_original_failed),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = actions::onLoadOriginalRingtones) { Text(stringResource(R.string.action_retry)) }
+                    }
+                }
+                else -> item(key = "original-loading") {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.contentWidth()) {
+                        CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(12.dp))
+                        Text(stringResource(R.string.ringtone_original_loading), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
             item(key = "builtin-header") {
                 SectionHeader(stringResource(R.string.ringtone_builtin_section), Modifier.contentWidth())
             }
             items(state.builtInRingtones, key = { it.id }) { ringtone ->
-                BuiltInRingtoneRow(
+                RingtoneRow(
                     ringtone = ringtone,
-                    selected = (current as? CurrentRingtone.BuiltIn)?.ringtone?.id == ringtone.id,
-                    isPreviewing = state.previewingRingtoneId == ringtone.id,
+                    subtitle = stringResource(R.string.ringtone_attribution, ringtone.author, ringtone.license),
+                    state = state,
                     enabled = canChange && !uploading,
-                    onSelect = { actions.onSelectRingtone(ringtone.id) },
-                    onPreview = { actions.onPreviewRingtone(ringtone.id) },
-                    onStop = actions::onStopPreview,
+                    actions = actions,
                     modifier = Modifier.contentWidth(),
                 )
             }
@@ -162,7 +203,13 @@ fun RingtoneScreen(
 private fun Modifier.contentWidth(): Modifier = widthIn(max = 640.dp).fillMaxWidth()
 
 @Composable
-private fun CurrentRingtoneCard(current: CurrentRingtone?, uploadProgress: Float?, modifier: Modifier = Modifier) {
+private fun CurrentRingtoneCard(
+    current: CurrentRingtone?,
+    uploadProgress: Float?,
+    canPlayOnClock: Boolean,
+    onPlayOnClock: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Card(
         modifier = modifier.semantics { liveRegion = LiveRegionMode.Polite },
         colors = CardDefaults.cardColors(
@@ -183,6 +230,13 @@ private fun CurrentRingtoneCard(current: CurrentRingtone?, uploadProgress: Float
                 LinearProgressIndicator(progress = { uploadProgress }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
                 Text(stringResource(R.string.ringtone_uploading_hint), style = MaterialTheme.typography.bodySmall)
+            } else {
+                Spacer(Modifier.height(12.dp))
+                FilledTonalButton(onClick = onPlayOnClock, enabled = canPlayOnClock) {
+                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.ringtone_play_on_clock))
+                }
             }
         }
     }
@@ -246,24 +300,34 @@ private fun CustomRingtoneCard(
 }
 
 @Composable
-private fun BuiltInRingtoneRow(
-    ringtone: BuiltInRingtone,
-    selected: Boolean,
-    isPreviewing: Boolean,
+private fun RingtoneRow(
+    ringtone: RingtoneOption,
+    subtitle: String,
+    state: MainUiState,
     enabled: Boolean,
-    onSelect: () -> Unit,
-    onPreview: () -> Unit,
-    onStop: () -> Unit,
+    actions: RingtoneActions,
     modifier: Modifier = Modifier,
 ) {
+    val selected = state.settings?.ringtoneSignature?.toHex() == ringtone.signatureHex
     OutlinedCard(modifier) {
         ListItem(
             leadingContent = { RadioButton(selected = selected, onClick = null, enabled = enabled) },
             headlineContent = { Text(ringtone.name) },
-            supportingContent = { Text(stringResource(R.string.ringtone_attribution, ringtone.author, ringtone.license)) },
-            trailingContent = { PreviewButton(isPreviewing, onPreview, onStop) },
+            supportingContent = { Text(subtitle) },
+            trailingContent = {
+                PreviewButton(
+                    isPreviewing = state.previewingRingtoneId == ringtone.id,
+                    onPreview = { actions.onPreviewRingtone(ringtone.id) },
+                    onStop = actions::onStopPreview,
+                )
+            },
             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            modifier = Modifier.selectable(selected = selected, enabled = enabled, role = Role.RadioButton, onClick = onSelect),
+            modifier = Modifier.selectable(
+                selected = selected,
+                enabled = enabled,
+                role = Role.RadioButton,
+                onClick = { actions.onSelectRingtone(ringtone.id) },
+            ),
         )
     }
 }
@@ -290,6 +354,8 @@ fun CurrentRingtone.label(): String = when (this) {
 }
 
 private object PreviewRingtoneActions : RingtoneActions {
+    override fun onLoadOriginalRingtones() = Unit
+    override fun onPlayOnClock() = Unit
     override fun onPreviewRingtone(id: String) = Unit
     override fun onPreviewCustomRingtone() = Unit
     override fun onStopPreview() = Unit

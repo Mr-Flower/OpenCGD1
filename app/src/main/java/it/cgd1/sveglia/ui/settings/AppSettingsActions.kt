@@ -9,4 +9,6 @@ interface AppSettingsActions {
     fun onThemeModeChange(mode: ThemeMode)
     fun onDynamicColorChange(enabled: Boolean)
     fun onLanguageChange(language: AppLanguage)
+    fun onCompleteOnboarding()
+    fun onShowOnboarding()
 }

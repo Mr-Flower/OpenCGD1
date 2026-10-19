@@ -48,11 +48,11 @@ import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.Cgd1
 import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.protocol.Language
-import it.cgd1.sveglia.protocol.SensorData
 import it.cgd1.sveglia.protocol.Weekday
 import it.cgd1.sveglia.ui.components.SectionHeader
 import it.cgd1.sveglia.ui.components.SwitchRow
 import it.cgd1.sveglia.ui.main.ClockActions
+import it.cgd1.sveglia.ui.main.ClockReadings
 import it.cgd1.sveglia.ui.main.ConnectionState
 import it.cgd1.sveglia.ui.main.MainUiState
 import it.cgd1.sveglia.ui.theme.OpenCgd1Theme
@@ -121,7 +121,7 @@ fun ClockScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 item(key = "status") {
-                    StatusCard(state, onRetry = actions::onRetry, modifier = Modifier.contentWidth())
+                    ClockDashboard(state, onRetry = actions::onRetry, modifier = Modifier.contentWidth())
                 }
                 if (settings != null) {
                     item(key = "next") {
@@ -234,8 +234,7 @@ private fun ClockScreenPreview() {
                 settings = previewSettings,
                 alarms = alarms,
                 firmware = "1.0.4",
-                battery = 87,
-                sensor = SensorData(21.4, 48.0, null),
+                readings = ClockReadings(21.4, 48.0, 87, updatedAtMillis = 0, batteryUpdatedAtMillis = 0),
             ),
             actions = PreviewClockActions,
             snackbarHostState = remember { SnackbarHostState() },

@@ -42,6 +42,14 @@ class AppSettingsViewModel @Inject constructor(
         viewModelScope.launch { repository.setUseDynamicColor(enabled) }
     }
 
+    override fun onCompleteOnboarding() {
+        viewModelScope.launch { repository.setOnboardingCompleted(true) }
+    }
+
+    override fun onShowOnboarding() {
+        viewModelScope.launch { repository.setOnboardingCompleted(false) }
+    }
+
     override fun onLanguageChange(language: AppLanguage) {
         this.language.value = language
         languageController.set(language)

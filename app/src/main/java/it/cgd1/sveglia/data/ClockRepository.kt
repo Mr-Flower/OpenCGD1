@@ -3,6 +3,7 @@ package it.cgd1.sveglia.data
 import it.cgd1.sveglia.ble.FoundClock
 import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.DeviceSettings
+import it.cgd1.sveglia.protocol.SensorData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -26,6 +27,9 @@ interface ClockRepository {
 interface ClockSession {
     val isConnected: StateFlow<Boolean>
 
+    /** Temperatura e umidità in tempo reale mentre si è collegati; valori non plausibili sono scartati. */
+    val liveSensor: Flow<SensorData>
+
     suspend fun load(): Result<ClockSnapshot>
     suspend fun readSettings(): Result<DeviceSettings>
     suspend fun writeSettings(settings: DeviceSettings): Result<Unit>
@@ -33,6 +37,9 @@ interface ClockSession {
 
     /** Carica l'audio e lo conserva sotto [signature]; per attivarlo va poi scritta la firma nelle impostazioni. */
     suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit>
+
+    /** Fa suonare sulla sveglia la suoneria attuale. */
+    suspend fun previewRingtone(volume: Int): Result<Unit>
 
     /** Invia l'ora UTC; il fuso va scritto a parte nelle impostazioni. */
     suspend fun syncTime(): Result<Unit>

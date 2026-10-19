@@ -19,14 +19,19 @@ import it.cgd1.sveglia.protocol.Cgd1CommandException
 import it.cgd1.sveglia.protocol.Cgd1ConnectionException
 import it.cgd1.sveglia.protocol.Codec
 import it.cgd1.sveglia.protocol.DeviceSettings
+import it.cgd1.sveglia.protocol.SensorData
 import it.cgd1.sveglia.protocol.toHex
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -57,6 +62,11 @@ class Cgd1Client(
     private val idleDisconnectMs: Long = 60_000,
 ) {
     private val appContext = context.applicationContext
+
+    private val _sensor = MutableSharedFlow<SensorData>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
+    /** Temperatura e umidità in tempo reale mentre si è collegati; la batteria qui non c'è. */
+    val sensor: SharedFlow<SensorData> = _sensor.asSharedFlow()
 
     private val _connected = MutableStateFlow(false)
 
@@ -157,11 +167,9 @@ class Cgd1Client(
         }
     }
 
-    /** Batteria dalla caratteristica GATT standard 0x2A19, se presente. */
-    suspend fun readBattery(): Int? = runCommand {
-        val ch = findChar(Cgd1.BATTERY_UUID) ?: return@runCommand null
-        val v = gattOp("read battery") { g -> readChar(g, ch) }
-        if (v.isNotEmpty()) v[0].toInt() and 0xFF else null
+    /** Fa suonare la suoneria attuale sulla sveglia, al volume indicato. */
+    suspend fun previewRingtone(volume: Int) {
+        runCommand { writeWithAck(Cgd1.DATA_WRITE_UUID, Cgd1.CMD_PREVIEW_RINGTONE + byteArrayOf(volume.toByte())) }
     }
 
 
@@ -310,6 +318,8 @@ class Cgd1Client(
         }
         enableNotify(authNotify)
         enableNotify(dataNotify)
+        // Facoltativa: senza, la dashboard mostra solo i valori dell'ultimo advertisement.
+        findChar(Cgd1.SENSOR_NOTIFY_UUID)?.let { runCatching { enableNotify(it) } }
     }
 
     private suspend fun authenticate() {
@@ -386,8 +396,6 @@ class Cgd1Client(
         }
     }
 
-    private fun readChar(g: BluetoothGatt, ch: BluetoothGattCharacteristic): Boolean = g.readCharacteristic(ch)
-
     private suspend fun enableNotify(ch: BluetoothGattCharacteristic) {
         val g = gatt ?: throw Cgd1ConnectionException("non connesso")
         if (!g.setCharacteristicNotification(ch, true)) throw Cgd1ConnectionException("notifiche non attivabili")
@@ -411,8 +419,12 @@ class Cgd1Client(
     }
 
 
-    private fun onNotify(frame: ByteArray) {
+    private fun onNotify(uuid: UUID, frame: ByteArray) {
         if (frame.isEmpty()) return
+        if (uuid == Cgd1.SENSOR_NOTIFY_UUID) {
+            runCatching { Codec.parseConnectedSensor(frame) }.getOrNull()?.let { _sensor.tryEmit(it) }
+            return
+        }
         val b0 = frame[0].toInt() and 0xFF
         val b1 = if (frame.size > 1) frame[1].toInt() and 0xFF else -1
         when {
@@ -489,13 +501,13 @@ class Cgd1Client(
 
         // API 33+
         override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic, value: ByteArray) =
-            onNotify(value)
+            onNotify(ch.uuid, value)
 
         // API < 33
         @Deprecated("Deprecated in Java")
         override fun onCharacteristicChanged(g: BluetoothGatt, ch: BluetoothGattCharacteristic) {
             @Suppress("DEPRECATION")
-            onNotify(ch.value?.copyOf() ?: return)
+            onNotify(ch.uuid, ch.value?.copyOf() ?: return)
         }
 
         private fun completeOp(status: Int, value: ByteArray) {

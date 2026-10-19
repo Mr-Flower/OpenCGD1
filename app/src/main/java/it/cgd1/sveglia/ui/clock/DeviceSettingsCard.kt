@@ -32,6 +32,11 @@ private const val VOLUME_MIN = 1
 private const val VOLUME_MAX = 5
 private const val BRIGHTNESS_STEP = 10
 
+// Quanto resta accesa la luce dopo un tocco. clOwOck usa 0–60 s; lo 0 non è documentato e qui si evita.
+private const val SCREEN_LIGHT_MIN = 5
+private const val SCREEN_LIGHT_MAX = 60
+private const val SCREEN_LIGHT_STEP = 5
+
 @Composable
 fun DeviceSettingsCard(
     settings: DeviceSettings,
@@ -102,11 +107,13 @@ fun DeviceSettingsCard(
                 TimeRow(stringResource(R.string.settings_night_end), settings.nightEnd, { t -> onUpdate { it.copy(nightEnd = t) } })
             }
             HorizontalDivider(Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outlineVariant)
-            Text(
-                stringResource(R.string.settings_screen_light, settings.screenLightSeconds),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            SliderRow(
+                label = stringResource(R.string.settings_screen_light_title),
+                value = settings.screenLightSeconds,
+                range = minOf(SCREEN_LIGHT_MIN, settings.screenLightSeconds)..maxOf(SCREEN_LIGHT_MAX, settings.screenLightSeconds),
+                step = SCREEN_LIGHT_STEP,
+                valueLabel = { resources.getString(R.string.value_seconds, it) },
+                onValueChange = { v -> onUpdate { it.copy(screenLightSeconds = v) } },
             )
         }
     }

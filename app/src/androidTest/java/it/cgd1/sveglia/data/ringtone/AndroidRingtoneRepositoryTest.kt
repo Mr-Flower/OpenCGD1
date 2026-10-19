@@ -17,7 +17,12 @@ import java.io.File
 class AndroidRingtoneRepositoryTest {
 
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
-    private val repository = AndroidRingtoneRepository(instrumentation.targetContext, Dispatchers.Default)
+    private val repository = AndroidRingtoneRepository(
+        instrumentation.targetContext,
+        QingpingRingtoneSource(instrumentation.targetContext),
+        Dispatchers.Default,
+        Dispatchers.IO,
+    )
 
     private fun assetUri(name: String): String {
         val file = File(instrumentation.targetContext.cacheDir, name)
@@ -44,7 +49,7 @@ class AndroidRingtoneRepositoryTest {
 
     @Test fun builtInRingtonesFitTheClock() = runTest {
         repository.builtIns.forEach { ringtone ->
-            val pcm = repository.loadPcm(ringtone)
+            val pcm = repository.loadPcm(ringtone).getOrThrow()
             assertTrue(ringtone.id, pcm.isNotEmpty() && pcm.size <= AudioUpload.MAX_AUDIO_BYTES)
         }
     }
