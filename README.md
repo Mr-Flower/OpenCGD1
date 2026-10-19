@@ -114,7 +114,7 @@ Scelte principali:
 - Batteria: solo dall'advertisement `FDCD` (campo TLV `02`, bit 7 da mascherare); temperatura e umidità anche dalla notifica `0x0100` da collegati
 - `02 04 + volume` fa suonare un bip a quel volume, non la suoneria caricata: l'app lo usa come prova del volume. Per sentire la suoneria serve una sveglia vera
 - Suoneria: `08 10 + lunghezza (3 byte LE) + firma (4 byte)`, poi pacchetti `81 08 + 128 byte` con conferma `04 ff 08` ogni 512 byte; serve un MTU di almeno 133. L'audio termina con `00` ed è riempito di `FF` fino al blocco
-- L'ora si invia come epoch UTC; il fuso sta nelle impostazioni a passi di 6 minuti. **La sveglia non conosce l'ora legale**: al cambio d'ora basta aprire l'app, che riallinea il fuso da sola
+- L'ora si invia come epoch UTC in secondi interi: l'app la legge a collegamento già pronto e aspetta l'inizio del secondo successivo, così la sveglia parte allineata al telefono. Poi la sveglia va col suo quarzo e può derivare di qualche secondo nel tempo: si riallinea a ogni apertura dell'app o con «Sincronizza ora»; il fuso sta nelle impostazioni a passi di 6 minuti. **La sveglia non conosce l'ora legale**: al cambio d'ora basta aprire l'app, che riallinea il fuso da sola
 
 ## Licenza
 

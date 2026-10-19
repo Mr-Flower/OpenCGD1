@@ -136,6 +136,12 @@ object Codec {
     private fun safeTime(h: Int, m: Int): LocalTime = LocalTime.of(h.coerceIn(0, 23), m.coerceIn(0, 59))
 
 
+    /**
+     * La sveglia accetta solo secondi interi: per non perdere la frazione si aspetta l'inizio del secondo
+     * successivo e si invia quello. Restituisce l'attesa in millisecondi e i secondi da inviare.
+     */
+    fun alignToNextSecond(nowMillis: Long): Pair<Long, Long> = (1000 - nowMillis % 1000) to (nowMillis / 1000 + 1)
+
     /** Pacchetto di sincronizzazione: opcode + secondi epoch, little-endian. */
     fun encodeTime(epochSeconds: Long): ByteArray {
         val t = epochSeconds and 0xFFFFFFFFL

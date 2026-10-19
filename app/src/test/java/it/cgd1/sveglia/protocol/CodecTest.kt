@@ -119,6 +119,12 @@ class CodecTest {
 
     @Test fun encodeTimeLayout() = assertArrayEquals(hex("05098058446a"), Codec.encodeTime(1782864000L))
 
+    @Test fun alignWaitsForTheNextFullSecond() =
+        assertEquals(250L to 1_782_864_001L, Codec.alignToNextSecond(1_782_864_000_750L))
+
+    @Test fun alignOnExactSecondStillSendsTheNextOne() =
+        assertEquals(1000L to 1_782_864_001L, Codec.alignToNextSecond(1_782_864_000_000L))
+
     @Test fun encodeTimeEpochZero() = assertArrayEquals(hex("050900000000"), Codec.encodeTime(0L))
 
 

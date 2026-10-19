@@ -131,9 +131,13 @@ class Cgd1Client(
     suspend fun deleteAlarm(slot: Int) = writeAlarm(slot, Alarm.EMPTY)
 
     /** Invia i secondi epoch (UTC); la sveglia mostra l'ora applicando il fuso delle impostazioni. */
-    suspend fun syncTime(epochSeconds: Long = System.currentTimeMillis() / 1000) {
-        val payload = Codec.encodeTime(epochSeconds)
-        runCommand { writeWithAck(Cgd1.AUTH_WRITE_UUID, payload) }
+    suspend fun syncTime(now: () -> Long = System::currentTimeMillis) {
+        runCommand {
+            // L'ora si legge qui, a collegamento pronto: letta prima, includerebbe i secondi di una riconnessione.
+            val (waitMillis, epochSeconds) = Codec.alignToNextSecond(now())
+            delay(waitMillis)
+            writeWithAck(Cgd1.AUTH_WRITE_UUID, Codec.encodeTime(epochSeconds))
+        }
     }
 
     /** Luminosità immediata 0–100 (passi da 10). */
