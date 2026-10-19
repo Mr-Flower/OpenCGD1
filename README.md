@@ -15,6 +15,7 @@ App Android open source per comandare la sveglia Bluetooth **Qingping CGD1** sen
 
 **App**
 - Material 3, con i colori **Material You** presi dallo sfondo (Android 12+, disattivabili)
+- Font **Inter**, simile a MiSans delle app Xiaomi; icona "clock" di Lucide
 - Tema **Segui il sistema**, **Chiaro**, **Scuro** o **AMOLED** (nero puro)
 - Lingua **English**, **Español**, **Français**, **Italiano**, oppure quella del dispositivo (predefinita). Su Android 13+ la lingua si può cambiare anche da *Impostazioni → App → OpenCGD1 → Lingua*
 
@@ -85,4 +86,4 @@ Scelte principali:
 
 ## Licenza
 
-MIT. Vedi [`LICENSE`](LICENSE).
+MIT. Vedi [`LICENSE`](LICENSE). Font e icona hanno licenze proprie, elencate in [`third_party/`](third_party/README.md).

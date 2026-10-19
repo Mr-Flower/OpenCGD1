@@ -93,5 +93,5 @@ fun OpenCgd1Theme(
         else -> LightColors
     }
     val colorScheme = if (themeMode == ThemeMode.AMOLED) base.toAmoled() else base
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
 }
