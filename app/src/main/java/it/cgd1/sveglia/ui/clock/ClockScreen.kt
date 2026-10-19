@@ -68,6 +68,7 @@ fun ClockScreen(
     actions: ClockActions,
     snackbarHostState: SnackbarHostState,
     onOpenSettings: () -> Unit,
+    onOpenRingtones: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     BackHandler(onBack = actions::onCloseClock)
@@ -168,7 +169,13 @@ fun ClockScreen(
                         SectionHeader(stringResource(R.string.section_settings), Modifier.contentWidth())
                     }
                     item(key = "settings") {
-                        DeviceSettingsCard(settings, onUpdate = actions::onUpdateSettings, modifier = Modifier.contentWidth())
+                        DeviceSettingsCard(
+                            settings = settings,
+                            currentRingtone = state.currentRingtone,
+                            onUpdate = actions::onUpdateSettings,
+                            onOpenRingtones = onOpenRingtones,
+                            modifier = Modifier.contentWidth(),
+                        )
                     }
                 }
             }
@@ -233,6 +240,7 @@ private fun ClockScreenPreview() {
             actions = PreviewClockActions,
             snackbarHostState = remember { SnackbarHostState() },
             onOpenSettings = {},
+            onOpenRingtones = {},
         )
     }
 }

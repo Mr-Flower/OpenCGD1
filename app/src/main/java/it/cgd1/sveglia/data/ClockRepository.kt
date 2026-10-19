@@ -31,6 +31,9 @@ interface ClockSession {
     suspend fun writeSettings(settings: DeviceSettings): Result<Unit>
     suspend fun writeAlarm(slot: Int, alarm: Alarm): Result<Unit>
 
+    /** Carica l'audio e lo conserva sotto [signature]; per attivarlo va poi scritta la firma nelle impostazioni. */
+    suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit>
+
     /** Invia l'ora UTC; il fuso va scritto a parte nelle impostazioni. */
     suspend fun syncTime(): Result<Unit>
 

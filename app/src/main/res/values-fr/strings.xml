@@ -109,4 +109,27 @@
     <string name="error_connection">Connexion perdue. Rapprochez-vous du réveil et réessayez.</string>
     <string name="error_permission">L\'autorisation Bluetooth a été révoquée.</string>
     <string name="error_scan_failed">Échec de la recherche (code %1$d)</string>
+
+    <!-- Ringtone -->
+    <string name="ringtone_title">Sonnerie</string>
+    <string name="ringtone_current">Sonnerie actuelle</string>
+    <string name="ringtone_custom_section">Votre sonnerie</string>
+    <string name="ringtone_builtin_section">Sonneries incluses</string>
+    <string name="ringtone_custom_hint">Choisissez un fichier audio : l\'appli le convertit pour le réveil (8 kHz, 12 secondes max).</string>
+    <string name="ringtone_pick_file">Choisir un fichier audio</string>
+    <string name="ringtone_converting">Conversion…</string>
+    <string name="ringtone_duration">%1$.1f s</string>
+    <string name="ringtone_upload">Envoyer au réveil</string>
+    <string name="ringtone_uploading">Envoi au réveil… %1$d %%</string>
+    <string name="ringtone_uploading_hint">Gardez le téléphone près du réveil jusqu\'à la fin.</string>
+    <string name="ringtone_attribution">%1$s · %2$s</string>
+    <string name="ringtone_preview">Écouter un aperçu</string>
+    <string name="ringtone_stop_preview">Arrêter l\'aperçu</string>
+    <string name="ringtone_original">%1$s (Qingping)</string>
+    <string name="ringtone_custom">Votre sonnerie</string>
+    <string name="ringtone_unknown">Inconnue</string>
+    <string name="ringtone_credits">Les sonneries incluses proviennent de lomiri-sounds (UBports) et sont distribuées sous la licence indiquée pour chacune ; elles ont été converties au format du réveil.</string>
+    <string name="message_ringtone_set">Sonnerie définie</string>
+    <string name="error_ringtone_unsupported">Impossible de lire ce fichier audio.</string>
+    <string name="error_ringtone_empty">Le fichier audio est vide.</string>
 </resources>

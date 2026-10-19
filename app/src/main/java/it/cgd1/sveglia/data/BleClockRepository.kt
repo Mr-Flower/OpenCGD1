@@ -121,6 +121,9 @@ private class BleClockSession(
 
     override suspend fun writeAlarm(slot: Int, alarm: Alarm): Result<Unit> = call { client.writeAlarm(slot, alarm) }
 
+    override suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit> =
+        call { client.uploadRingtone(pcm, signature, onProgress) }
+
     override suspend fun syncTime(): Result<Unit> = call { client.syncTime() }
 
     override fun close() {

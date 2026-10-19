@@ -109,4 +109,27 @@
     <string name="error_connection">Collegamento perso. Avvicinati alla sveglia e riprova.</string>
     <string name="error_permission">Il permesso Bluetooth è stato revocato.</string>
     <string name="error_scan_failed">Ricerca fallita (codice %1$d)</string>
+
+    <!-- Ringtone -->
+    <string name="ringtone_title">Suoneria</string>
+    <string name="ringtone_current">Suoneria attuale</string>
+    <string name="ringtone_custom_section">La tua suoneria</string>
+    <string name="ringtone_builtin_section">Suonerie incluse</string>
+    <string name="ringtone_custom_hint">Scegli un file audio qualsiasi: l\'app lo converte per la sveglia (8 kHz, massimo 12 secondi).</string>
+    <string name="ringtone_pick_file">Scegli file audio</string>
+    <string name="ringtone_converting">Conversione…</string>
+    <string name="ringtone_duration">%1$.1f s</string>
+    <string name="ringtone_upload">Carica sulla sveglia</string>
+    <string name="ringtone_uploading">Caricamento sulla sveglia… %1$d %%</string>
+    <string name="ringtone_uploading_hint">Tieni il telefono vicino alla sveglia fino alla fine.</string>
+    <string name="ringtone_attribution">%1$s · %2$s</string>
+    <string name="ringtone_preview">Ascolta anteprima</string>
+    <string name="ringtone_stop_preview">Ferma anteprima</string>
+    <string name="ringtone_original">%1$s (Qingping)</string>
+    <string name="ringtone_custom">La tua suoneria</string>
+    <string name="ringtone_unknown">Sconosciuta</string>
+    <string name="ringtone_credits">Le suonerie incluse provengono da lomiri-sounds (UBports) e sono distribuite con la licenza indicata per ciascuna; sono state convertite nel formato della sveglia.</string>
+    <string name="message_ringtone_set">Suoneria impostata</string>
+    <string name="error_ringtone_unsupported">Impossibile leggere questo file audio.</string>
+    <string name="error_ringtone_empty">Il file audio è vuoto.</string>
 </resources>

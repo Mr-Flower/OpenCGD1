@@ -12,6 +12,7 @@ App Android open source per comandare la sveglia Bluetooth **Qingping CGD1** sen
 - Interruttore generale delle sveglie e "prossima sveglia"
 - Sincronizza ora **e fuso** con il telefono, a ogni collegamento e con il pulsante dedicato
 - Impostazioni del dispositivo: volume, 12/24 h, °C/°F, lingua del display, luminosità giorno/notte, modalità notte con orari
+- **Suoneria**: 14 suonerie open source incluse, oppure un file audio tuo (mp3, ogg, wav, m4a…) convertito al volo. Anteprima sul telefono prima di caricarla e barra di avanzamento durante il trasferimento
 
 **App**
 - Material 3, con i colori **Material You** presi dallo sfondo (Android 12+, disattivabili)
@@ -35,6 +36,16 @@ Scarica l'APK dall'ultima build nella scheda **Actions** del repository (artifac
 
 L'APK "release" è firmato con la chiave di debug: va bene per uso personale, non per il Play Store.
 
+## Suonerie
+
+La sveglia conserva una sola suoneria: sceglierne una vuol dire caricarla via Bluetooth (circa 96 KB, qualche decina di secondi), con il telefono vicino.
+
+- **Incluse**: 14 suoni da [lomiri-sounds](https://gitlab.com/ubports/development/core/lomiri-sounds) (UBports), con licenza CC BY-SA, CC BY o CC0. Autori e licenze sono in [`third_party/ringtones`](third_party/ringtones/README.md) e anche nell'app
+- **Personalizzata**: qualsiasi file audio che Android sa leggere. L'app lo porta a 8 kHz, 8 bit e mono, lo normalizza e lo taglia a 12 secondi con una dissolvenza finale
+- Le suonerie originali dell'app Qingping non sono incluse perché sono di Qingping; se la sveglia ne ha ancora una, l'app ne mostra il nome
+
+Per aggiungere una suoneria all'app: `python3 tools/convert_ringtone.py input.ogg app/src/main/res/raw/ringtone_nome.pcm`, poi una voce in `BuiltInRingtones.kt` con una firma nuova.
+
 ## Compilare
 
 **Android Studio**: *File → Open* sulla cartella, attendi il sync di Gradle, poi *Run* con il telefono collegato via USB (debug USB attivo).
@@ -43,6 +54,7 @@ L'APK "release" è firmato con la chiave di debug: va bene per uso personale, no
 
 ```bash
 ./gradlew testDebugUnitTest lintDebug assembleRelease
+./gradlew connectedDebugAndroidTest   # test su dispositivo/emulatore (decodifica audio)
 adb install app/build/outputs/apk/release/app-release.apk
 ```
 
@@ -54,19 +66,24 @@ Un solo modulo, organizzato per livelli: MVVM con stato immutabile per schermata
 
 ```
 app/src/main/java/it/cgd1/sveglia/
-  protocol/   Codec, modelli, costanti: Kotlin puro, nessuna dipendenza Android
+  protocol/   Codec, modelli, costanti, pacchetti audio: Kotlin puro, nessuna dipendenza Android
+  audio/      conversione PCM (filtro, ricampionamento, normalizzazione): Kotlin puro
   ble/        Cgd1Client (GATT + coroutine), Cgd1Scanner (callbackFlow)
   data/       ClockRepository: unico confine verso il BLE, mappa ogni eccezione in ClockError
               AppPreferencesRepository e SavedClockStore su DataStore; LanguageController
+    ringtone/ catalogo suonerie, decodifica con MediaCodec, anteprima con AudioTrack
   di/         moduli Hilt
   ui/
     main/     MainViewModel, MainUiState, effetti e interfacce Actions
     scan/     ricerca della sveglia
     clock/    sveglie, stato del collegamento, impostazioni del dispositivo
+    ringtone/ scelta, anteprima e caricamento della suoneria
     settings/ tema, Material You, lingua
     theme/    schema colori M3 (statico, dinamico, AMOLED)
     components/
-app/src/test/  CodecTest (i test Python portati 1:1) e MainViewModelTest (con repository finto)
+app/src/test/         CodecTest (i test Python portati 1:1), AudioUploadTest, PcmProcessingTest, MainViewModelTest
+app/src/androidTest/  decodifica audio reale con MediaCodec
+tools/                convert_ringtone.py per preparare le suonerie incluse
 ```
 
 Scelte principali:
@@ -82,6 +99,7 @@ Scelte principali:
 
 - Servizio `22210000-554a-4546-5542-46534450464d`; caratteristiche 0x0001/0x0002 (auth), 0x000B/0x000C (dati)
 - Autenticazione: `11 01 + token`, `11 02 + token`, poi una lettura delle impostazioni come prova (la sveglia fa ACK anche a token errati)
+- Suoneria: `08 10 + lunghezza (3 byte LE) + firma (4 byte)`, poi pacchetti `81 08 + 128 byte` con conferma `04 ff 08` ogni 512 byte; serve un MTU di almeno 133. L'audio termina con `00` ed è riempito di `FF` fino al blocco
 - L'ora si invia come epoch UTC; il fuso sta nelle impostazioni a passi di 6 minuti. **La sveglia non conosce l'ora legale**: al cambio d'ora basta aprire l'app, che riallinea il fuso da sola
 
 ## Licenza

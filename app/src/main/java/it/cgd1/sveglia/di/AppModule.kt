@@ -16,6 +16,10 @@ import it.cgd1.sveglia.data.AppCompatLanguageController
 import it.cgd1.sveglia.data.BleClockRepository
 import it.cgd1.sveglia.data.ClockRepository
 import it.cgd1.sveglia.data.LanguageController
+import it.cgd1.sveglia.data.ringtone.AndroidRingtoneRepository
+import it.cgd1.sveglia.data.ringtone.AudioTrackRingtonePlayer
+import it.cgd1.sveglia.data.ringtone.RingtonePlayer
+import it.cgd1.sveglia.data.ringtone.RingtoneRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
@@ -26,6 +30,12 @@ abstract class AppModule {
 
     @Binds
     abstract fun bindClockRepository(impl: BleClockRepository): ClockRepository
+
+    @Binds
+    abstract fun bindRingtoneRepository(impl: AndroidRingtoneRepository): RingtoneRepository
+
+    @Binds
+    abstract fun bindRingtonePlayer(impl: AudioTrackRingtonePlayer): RingtonePlayer
 
     @Binds
     abstract fun bindLanguageController(impl: AppCompatLanguageController): LanguageController

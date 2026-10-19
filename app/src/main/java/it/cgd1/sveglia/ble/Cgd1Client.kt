@@ -12,6 +12,7 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import it.cgd1.sveglia.protocol.Alarm
+import it.cgd1.sveglia.protocol.AudioUpload
 import it.cgd1.sveglia.protocol.Cgd1
 import it.cgd1.sveglia.protocol.Cgd1AuthException
 import it.cgd1.sveglia.protocol.Cgd1CommandException
@@ -35,6 +36,9 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 private const val TAG = "Cgd1Client"
+private const val DEFAULT_MTU = 23
+private const val UPLOAD_MTU = 247
+private const val ATT_HEADER_SIZE = 3
 
 /**
  * Client GATT per la Qingping CGD1: connessione, autenticazione con token, comandi.
@@ -71,6 +75,10 @@ class Cgd1Client(
     @Volatile private var alarmWaiter: CompletableDeferred<List<Alarm>>? = null
     private val ackWaiters = ConcurrentHashMap<Int, CompletableDeferred<Int>>()
     private val alarmSlots = arrayOfNulls<Alarm>(Cgd1.ALARM_SLOT_COUNT)
+    @Volatile private var mtu = DEFAULT_MTU
+
+    // Da Android 14 il sistema negozia l'MTU da solo: quella callback non deve completare un'altra operazione.
+    @Volatile private var mtuRequestPending = false
     private var idleJob: Job? = null
 
     /** Dopo [closeNow] il client non si ricollega più, nemmeno dai percorsi di retry. */
@@ -129,6 +137,24 @@ class Cgd1Client(
         val raw = requestFirmware()
         val len = raw[1].toInt() and 0xFF
         String(raw, 2, minOf(len, raw.size - 2), Charsets.US_ASCII)
+    }
+
+    /**
+     * Carica una suoneria già convertita e la conserva sotto [signature]. Il trasferimento tiene il
+     * link per sé dall'inizio alla fine: un comando in parallelo lo farebbe abortire.
+     */
+    suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit) {
+        val padded = AudioUpload.pad(pcm)
+        val packets = AudioUpload.packets(padded)
+        runCommand {
+            ensureMtu()
+            onProgress(0f)
+            writeWithAck(Cgd1.DATA_WRITE_UUID, AudioUpload.encodeInit(padded.size, signature))
+            packets.chunked(AudioUpload.PACKETS_PER_BLOCK).forEachIndexed { block, blockPackets ->
+                sendAudioBlock(blockPackets)
+                onProgress((block + 1).toFloat() * AudioUpload.PACKETS_PER_BLOCK / packets.size)
+            }
+        }
     }
 
     /** Batteria dalla caratteristica GATT standard 0x2A19, se presente. */
@@ -209,6 +235,33 @@ class Cgd1Client(
         }
     }
 
+    private suspend fun ensureMtu() {
+        if (mtu - ATT_HEADER_SIZE >= AudioUpload.PACKET_SIZE) return
+        mtuRequestPending = true
+        try {
+            gattOp("request mtu") { g -> g.requestMtu(UPLOAD_MTU) }
+        } finally {
+            mtuRequestPending = false
+        }
+        if (mtu - ATT_HEADER_SIZE < AudioUpload.PACKET_SIZE) {
+            throw Cgd1CommandException("MTU troppo piccolo per caricare la suoneria: $mtu")
+        }
+    }
+
+    /** La sveglia conferma ogni blocco da 512 byte con `04 ff 08`, non ogni pacchetto. */
+    private suspend fun sendAudioBlock(blockPackets: List<ByteArray>) {
+        val sub = Cgd1.CMD_AUDIO_DATA[1].toInt() and 0xFF
+        val w = CompletableDeferred<Int>()
+        ackWaiters[sub] = w
+        val status = try {
+            blockPackets.forEach { writeChar(Cgd1.DATA_WRITE_UUID, it) }
+            awaitOrTimeout(w, "ack blocco audio")
+        } finally {
+            ackWaiters.remove(sub)
+        }
+        if (status != 0x00) throw Cgd1CommandException("blocco audio rifiutato, stato 0x%02x".format(status))
+    }
+
     private suspend fun <T : Any> awaitOrTimeout(w: CompletableDeferred<T>, what: String): T =
         withTimeoutOrNull(commandTimeoutMs) { w.await() }
             ?: throw Cgd1ConnectionException("timeout: $what")
@@ -278,6 +331,7 @@ class Cgd1Client(
         val g = gatt
         gatt = null
         ready = false
+        mtu = DEFAULT_MTU
         if (g != null) {
             runCatching { g.disconnect() }
             runCatching { g.close() }
@@ -399,6 +453,7 @@ class Cgd1Client(
                 if (gatt === g) {
                     gatt = null
                     ready = false
+                    mtu = DEFAULT_MTU
                     runCatching { g.close() }
                     failPending(Cgd1ConnectionException("collegamento perso (stato $status)"))
                     _connected.value = false
@@ -409,6 +464,11 @@ class Cgd1Client(
         }
 
         override fun onServicesDiscovered(g: BluetoothGatt, status: Int) = completeOp(status, ByteArray(0))
+
+        override fun onMtuChanged(g: BluetoothGatt, mtu: Int, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) this@Cgd1Client.mtu = mtu
+            if (mtuRequestPending) completeOp(status, ByteArray(0))
+        }
 
         override fun onCharacteristicWrite(g: BluetoothGatt, ch: BluetoothGattCharacteristic, status: Int) =
             completeOp(status, ByteArray(0))

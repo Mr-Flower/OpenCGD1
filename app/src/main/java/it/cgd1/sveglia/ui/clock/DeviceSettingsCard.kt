@@ -1,22 +1,32 @@
 package it.cgd1.sveglia.ui.clock
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import it.cgd1.sveglia.R
+import it.cgd1.sveglia.data.ringtone.CurrentRingtone
 import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.protocol.Language
 import it.cgd1.sveglia.ui.components.SliderRow
 import it.cgd1.sveglia.ui.components.SwitchRow
 import it.cgd1.sveglia.ui.components.TimeRow
+import it.cgd1.sveglia.ui.ringtone.label
 
 private const val VOLUME_MIN = 1
 private const val VOLUME_MAX = 5
@@ -25,13 +35,22 @@ private const val BRIGHTNESS_STEP = 10
 @Composable
 fun DeviceSettingsCard(
     settings: DeviceSettings,
+    currentRingtone: CurrentRingtone?,
     onUpdate: ((DeviceSettings) -> DeviceSettings) -> Unit,
+    onOpenRingtones: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val resources = LocalResources.current
     val percent: (Int) -> String = { resources.getString(R.string.value_percent, it) }
     ElevatedCard(modifier) {
         Column(Modifier.padding(vertical = 8.dp)) {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.ringtone_title)) },
+                supportingContent = { Text(currentRingtone?.label() ?: "—") },
+                trailingContent = { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
+                colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                modifier = Modifier.clickable(role = Role.Button, onClick = onOpenRingtones),
+            )
             // Il firmware può riportare valori fuori dal range noto: l'intervallo si allarga per non perderli.
             SliderRow(
                 label = stringResource(R.string.settings_volume),

@@ -39,6 +39,7 @@ import it.cgd1.sveglia.ui.clock.ClockScreen
 import it.cgd1.sveglia.ui.components.CenteredMessage
 import it.cgd1.sveglia.ui.main.MainEffect
 import it.cgd1.sveglia.ui.main.MainViewModel
+import it.cgd1.sveglia.ui.ringtone.RingtoneScreen
 import it.cgd1.sveglia.ui.scan.ScanScreen
 import it.cgd1.sveglia.ui.settings.AppSettingsActions
 import it.cgd1.sveglia.ui.settings.AppSettingsScreen
@@ -89,6 +90,7 @@ fun OpenCgd1App(
     }
 
     var showSettings by rememberSaveable { mutableStateOf(false) }
+    var showRingtones by rememberSaveable { mutableStateOf(false) }
     val openSettings = { showSettings = true }
 
     val modifier = Modifier.fillMaxSize()
@@ -135,11 +137,19 @@ fun OpenCgd1App(
             onOpenSettings = openSettings,
             modifier = modifier,
         )
+        showRingtones -> RingtoneScreen(
+            state = state,
+            actions = viewModel,
+            snackbarHostState = snackbarHostState,
+            onBack = { showRingtones = false },
+            modifier = modifier,
+        )
         else -> ClockScreen(
             state = state,
             actions = viewModel,
             snackbarHostState = snackbarHostState,
             onOpenSettings = openSettings,
+            onOpenRingtones = { showRingtones = true },
             modifier = modifier,
         )
     }

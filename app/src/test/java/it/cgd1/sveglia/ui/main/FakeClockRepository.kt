@@ -6,7 +6,13 @@ import it.cgd1.sveglia.data.ClockRepository
 import it.cgd1.sveglia.data.ClockSession
 import it.cgd1.sveglia.data.ClockSnapshot
 import it.cgd1.sveglia.data.SavedClock
+import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
+import it.cgd1.sveglia.data.ringtone.CustomRingtone
+import it.cgd1.sveglia.data.ringtone.RingtoneError
+import it.cgd1.sveglia.data.ringtone.RingtonePlayer
+import it.cgd1.sveglia.data.ringtone.RingtoneRepository
 import it.cgd1.sveglia.protocol.Alarm
+import it.cgd1.sveglia.protocol.AudioUpload
 import it.cgd1.sveglia.protocol.DeviceSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -47,6 +53,14 @@ class FakeClockSession(private val snapshot: ClockSnapshot) : ClockSession {
 
     override suspend fun writeAlarm(slot: Int, alarm: Alarm): Result<Unit> = write { writtenAlarms += slot to alarm }
 
+    val uploads = mutableListOf<Pair<ByteArray, ByteArray>>()
+
+    override suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit> =
+        write {
+            onProgress(1f)
+            uploads += pcm to signature
+        }
+
     override suspend fun syncTime(): Result<Unit> = Result.success(Unit)
 
     override fun close() {
@@ -54,4 +68,25 @@ class FakeClockSession(private val snapshot: ClockSnapshot) : ClockSession {
     }
 
     private fun write(record: () -> Unit): Result<Unit> = writeError?.let { Result.failure(it) } ?: Result.success(record())
+}
+
+class FakeRingtoneRepository(override val builtIns: List<BuiltInRingtone>) : RingtoneRepository {
+    var converted: Result<CustomRingtone> = Result.failure(RingtoneError.Empty())
+
+    // Un secondo di audio: l'anteprima deve durare abbastanza da poterla osservare in corso.
+    override suspend fun loadPcm(ringtone: BuiltInRingtone): ByteArray = ByteArray(AudioUpload.SAMPLE_RATE) { ringtone.id.length.toByte() }
+
+    override suspend fun convert(uri: String): Result<CustomRingtone> = converted
+}
+
+class FakeRingtonePlayer : RingtonePlayer {
+    var playing: ByteArray? = null
+
+    override fun play(pcm: ByteArray) {
+        playing = pcm
+    }
+
+    override fun stop() {
+        playing = null
+    }
 }

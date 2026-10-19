@@ -6,10 +6,15 @@ import it.cgd1.sveglia.ble.FoundClock
 import it.cgd1.sveglia.data.ClockError
 import it.cgd1.sveglia.data.ClockSnapshot
 import it.cgd1.sveglia.data.SavedClock
+import it.cgd1.sveglia.data.ringtone.BuiltInRingtone
+import it.cgd1.sveglia.data.ringtone.CurrentRingtone
+import it.cgd1.sveglia.data.ringtone.CustomRingtone
+import it.cgd1.sveglia.data.ringtone.CustomSlots
 import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.Cgd1
 import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.protocol.Language
+import it.cgd1.sveglia.protocol.toHex
 import it.cgd1.sveglia.ui.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -19,9 +24,11 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -48,6 +55,9 @@ class MainViewModelTest {
     private val alarms = List(Cgd1.ALARM_SLOT_COUNT) { if (it == 0) existing else Alarm.EMPTY }
 
     private val repository = FakeClockRepository(ClockSnapshot(settings, alarms, firmware = "1.0", battery = 80))
+    private val bliss = BuiltInRingtone("bliss", "Bliss", "Canonical Ltd.", "CC BY-SA 3.0", rawRes = 0, signatureHex = "4f430003")
+    private val ringtones = FakeRingtoneRepository(listOf(bliss))
+    private val player = FakeRingtonePlayer()
     private val clock = FoundClock("AA:BB:CC:DD:EE:FF", "Qingping Alarm Clock", rssi = -60, sensor = null)
 
     @Before fun setUp() = Dispatchers.setMain(dispatcher)
@@ -55,7 +65,7 @@ class MainViewModelTest {
     @After fun tearDown() = Dispatchers.resetMain()
 
     // uiState è WhileSubscribed: senza un collector resterebbe al valore iniziale.
-    private fun TestScope.openedViewModel(): MainViewModel = MainViewModel(repository).also {
+    private fun TestScope.openedViewModel(): MainViewModel = MainViewModel(repository, ringtones, player).also {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { it.uiState.collect {} }
         it.onOpenFound(clock)
         advanceUntilIdle()
@@ -113,5 +123,40 @@ class MainViewModelTest {
         advanceUntilIdle()
         assertTrue(repository.session.closed)
         assertNull(vm.uiState.value.openClock)
+    }
+
+    @Test fun choosingABuiltInRingtoneUploadsItAndActivatesItsSignature() = runTest(dispatcher) {
+        val vm = openedViewModel()
+        vm.onSelectRingtone(bliss.id)
+        advanceUntilIdle()
+        val (pcm, signature) = repository.session.uploads.single()
+        assertArrayEquals(ringtones.loadPcm(bliss), pcm)
+        assertArrayEquals(bliss.signature, signature)
+        assertArrayEquals(bliss.signature, repository.session.writtenSettings.last().ringtoneSignature)
+        assertEquals(CurrentRingtone.BuiltIn(bliss), vm.uiState.value.currentRingtone)
+        assertNull(vm.uiState.value.ringtoneUploadProgress)
+    }
+
+    @Test fun customRingtonesAlternateBetweenTheTwoSlots() = runTest(dispatcher) {
+        val vm = openedViewModel()
+        ringtones.converted = Result.success(CustomRingtone("mine", ByteArray(800)))
+        repeat(2) {
+            vm.onCustomRingtonePicked("content://audio/1")
+            advanceUntilIdle()
+            vm.onUploadCustomRingtone()
+            advanceUntilIdle()
+        }
+        assertEquals(listOf(CustomSlots.A, CustomSlots.B), repository.session.uploads.map { it.second.toHex() })
+        assertNull(vm.uiState.value.customRingtone)
+    }
+
+    @Test fun previewStopsByItself() = runTest(dispatcher) {
+        val vm = openedViewModel()
+        vm.onPreviewRingtone(bliss.id)
+        runCurrent()
+        assertEquals(bliss.id, vm.uiState.value.previewingRingtoneId)
+        advanceUntilIdle()
+        assertNull(player.playing)
+        assertNull(vm.uiState.value.previewingRingtoneId)
     }
 }

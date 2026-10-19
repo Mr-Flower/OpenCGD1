@@ -29,3 +29,14 @@ interface ClockActions {
     /** [transform] si applica alle impostazioni correnti al momento della scrittura, non del tocco. */
     fun onUpdateSettings(transform: (DeviceSettings) -> DeviceSettings)
 }
+
+@Stable
+interface RingtoneActions {
+    fun onPreviewRingtone(id: String)
+    fun onPreviewCustomRingtone()
+    fun onStopPreview()
+    fun onSelectRingtone(id: String)
+    fun onCustomRingtonePicked(uri: String)
+    fun onUploadCustomRingtone()
+    fun onDismissCustomRingtone()
+}
