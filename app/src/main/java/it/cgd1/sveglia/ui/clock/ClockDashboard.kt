@@ -133,7 +133,6 @@ private fun ReadingTile(
     val spoken = if (value != null) "$label $value $unit" else "$label —"
     Card(
         modifier = modifier.clearAndSetSemantics { contentDescription = spoken },
-        shape = MaterialTheme.shapes.extraLarge,
         colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor),
     ) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 18.dp)) {
@@ -218,7 +217,8 @@ private fun BatteryPill(level: Int) {
 
 @Composable
 private fun Pill(label: String, leading: @Composable () -> Unit) {
-    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
+    // Stessa forma dei chip M3 (small), così tutta la schermata segue un'unica scala di arrotondamenti.
+    Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),

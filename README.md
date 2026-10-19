@@ -13,11 +13,12 @@ App Android open source per comandare la sveglia Bluetooth **Qingping CGD1** sen
 - Interruttore generale delle sveglie e "prossima sveglia"
 - Sincronizza ora **e fuso** con il telefono, a ogni collegamento e con il pulsante dedicato
 - Impostazioni del dispositivo: volume, 12/24 h, °C/°F, lingua del display, luminosità giorno/notte, durata della luce schermo, modalità notte con orari
-- **Suoneria**: le 9 originali Qingping (scaricate dal loro server), 18 suoni di allarme AOSP inclusi o un file audio tuo. Anteprima sul telefono, "Fai suonare la sveglia" per sentirla dall'altoparlante vero, barra di avanzamento durante il caricamento
+- **Suoneria**: le 9 originali Qingping (scaricate dal loro server), 18 suoni di allarme AOSP inclusi o un file audio tuo. Anteprima sul telefono, "Prova con una sveglia tra un minuto" per sentirla dall'altoparlante vero (l'app imposta una sveglia temporanea e poi la cancella), barra di avanzamento durante il caricamento
 
 **App**
-- Guida di benvenuto al primo avvio (come liberare la sveglia da Mi Home, permessi), rivedibile dalle Impostazioni
-- Material 3, con i colori **Material You** presi dallo sfondo (Android 12+, disattivabili)
+- Guida di benvenuto al primo avvio (come liberare la sveglia da Mi Home, permessi): non si va avanti senza il permesso Bluetooth, e se è stato negato porta alle impostazioni di sistema. Si può rivedere dalle Impostazioni
+- Tema e lingua scelti da menu a tendina; slider in stile Impostazioni di Android
+- Material 3 con palette teal propria; i colori **Material You** presi dallo sfondo si possono attivare nelle impostazioni (Android 12+)
 - Font **Inter**, simile a MiSans delle app Xiaomi; icona "clock" di Lucide
 - Tema **Segui il sistema**, **Chiaro**, **Scuro** o **AMOLED** (nero puro)
 - Lingua **English**, **Español**, **Français**, **Italiano**, oppure quella del dispositivo (predefinita). Su Android 13+ la lingua si può cambiare anche da *Impostazioni → App → OpenCGD1 → Lingua*
@@ -111,7 +112,7 @@ Scelte principali:
 - Servizio `22210000-554a-4546-5542-46534450464d`; caratteristiche 0x0001/0x0002 (auth), 0x000B/0x000C (dati)
 - Autenticazione: `11 01 + token`, `11 02 + token`, poi una lettura delle impostazioni come prova (la sveglia fa ACK anche a token errati)
 - Batteria: solo dall'advertisement `FDCD` (campo TLV `02`, bit 7 da mascherare); temperatura e umidità anche dalla notifica `0x0100` da collegati
-- Anteprima della suoneria sulla sveglia: `02 04 + volume`
+- `02 04 + volume` fa suonare un bip a quel volume, non la suoneria caricata: l'app lo usa come prova del volume. Per sentire la suoneria serve una sveglia vera
 - Suoneria: `08 10 + lunghezza (3 byte LE) + firma (4 byte)`, poi pacchetti `81 08 + 128 byte` con conferma `04 ff 08` ogni 512 byte; serve un MTU di almeno 133. L'audio termina con `00` ed è riempito di `FF` fino al blocco
 - L'ora si invia come epoch UTC; il fuso sta nelle impostazioni a passi di 6 minuti. **La sveglia non conosce l'ora legale**: al cambio d'ora basta aprire l'app, che riallinea il fuso da sola
 

@@ -42,6 +42,7 @@ fun DeviceSettingsCard(
     settings: DeviceSettings,
     currentRingtone: CurrentRingtone?,
     onUpdate: ((DeviceSettings) -> DeviceSettings) -> Unit,
+    onVolumeChange: (Int) -> Unit,
     onOpenRingtones: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -62,7 +63,7 @@ fun DeviceSettingsCard(
                 value = settings.volume,
                 range = minOf(VOLUME_MIN, settings.volume)..maxOf(VOLUME_MAX, settings.volume),
                 step = 1,
-                onValueChange = { v -> onUpdate { it.copy(volume = v) } },
+                onValueChange = onVolumeChange,
             )
             SwitchRow(
                 stringResource(R.string.settings_24h),

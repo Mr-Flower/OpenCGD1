@@ -9,25 +9,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -84,16 +90,14 @@ fun AppSettingsScreen(
 
             SectionHeader(stringResource(R.string.app_settings_appearance), cardModifier)
             ElevatedCard(cardModifier) {
-                Column(Modifier.selectableGroup()) {
-                    ThemeMode.entries.forEach { mode ->
-                        RadioRow(
-                            label = stringResource(mode.labelRes),
-                            selected = state.preferences.themeMode == mode,
-                            onClick = { actions.onThemeModeChange(mode) },
-                        )
-                    }
-                }
-                HorizontalDivider(Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                DropdownSetting(
+                    label = stringResource(R.string.app_settings_theme),
+                    options = ThemeMode.entries,
+                    selected = state.preferences.themeMode,
+                    optionLabel = { stringResource(it.labelRes) },
+                    onSelect = actions::onThemeModeChange,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+                )
                 val dynamicSupported = isDynamicColorSupported()
                 SwitchRow(
                     label = stringResource(R.string.app_settings_dynamic_color),
@@ -104,6 +108,18 @@ fun AppSettingsScreen(
                     checked = dynamicSupported && state.preferences.useDynamicColor,
                     enabled = dynamicSupported,
                     onCheckedChange = actions::onDynamicColorChange,
+                )
+            }
+
+            SectionHeader(stringResource(R.string.app_settings_language), cardModifier)
+            ElevatedCard(cardModifier) {
+                DropdownSetting(
+                    label = stringResource(R.string.app_settings_app_language),
+                    options = AppLanguage.entries,
+                    selected = state.language,
+                    optionLabel = { stringResource(it.labelRes) },
+                    onSelect = actions::onLanguageChange,
+                    modifier = Modifier.padding(16.dp),
                 )
             }
 
@@ -119,31 +135,52 @@ fun AppSettingsScreen(
                     },
                 )
             }
-
-            SectionHeader(stringResource(R.string.app_settings_language), cardModifier)
-            ElevatedCard(cardModifier) {
-                Column(Modifier.selectableGroup()) {
-                    AppLanguage.entries.forEach { language ->
-                        RadioRow(
-                            label = stringResource(language.labelRes),
-                            selected = state.language == language,
-                            onClick = { actions.onLanguageChange(language) },
-                        )
-                    }
-                }
-            }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(label) },
-        leadingContent = { RadioButton(selected = selected, onClick = null) },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-        modifier = Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
-    )
+private fun <T> DropdownSetting(
+    label: String,
+    options: List<T>,
+    selected: T,
+    optionLabel: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
+        OutlinedTextField(
+            value = optionLabel(selected),
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth(),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(optionLabel(option)) },
+                    // A destra: a sinistra la spunta sposterebbe il testo della sola voce selezionata.
+                    trailingIcon = if (option == selected) {
+                        { Icon(Icons.Filled.Check, contentDescription = null) }
+                    } else {
+                        null
+                    },
+                    onClick = {
+                        expanded = false
+                        if (option != selected) onSelect(option)
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
 }
 
 private val ThemeMode.labelRes: Int

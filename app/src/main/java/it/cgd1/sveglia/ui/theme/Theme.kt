@@ -2,8 +2,10 @@ package it.cgd1.sveglia.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import it.cgd1.sveglia.data.ThemeMode
 
 private val LightColors = lightColorScheme(
@@ -68,6 +71,16 @@ private fun ColorScheme.toAmoled(): ColorScheme = copy(
 
 private const val AMOLED_DARKEN = 0.5f
 
+// La scala M3 resa esplicita: le schermate usano solo questi valori, mai raggi scritti a mano.
+// Card e tessere: medium. Chip e pillole: small. Dialog e sheet: extraLarge. Bottoni: forma piena (default M3).
+private val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(28.dp),
+)
+
 fun isDynamicColorSupported(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 @Composable
@@ -80,7 +93,7 @@ fun ThemeMode.isDark(): Boolean = when (this) {
 @Composable
 fun OpenCgd1Theme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val dark = themeMode.isDark()
@@ -93,5 +106,5 @@ fun OpenCgd1Theme(
         else -> LightColors
     }
     val colorScheme = if (themeMode == ThemeMode.AMOLED) base.toAmoled() else base
-    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, content = content)
+    MaterialTheme(colorScheme = colorScheme, typography = AppTypography, shapes = AppShapes, content = content)
 }

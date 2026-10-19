@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
@@ -74,8 +75,16 @@ fun OpenCgd1App(
         permissionsGranted = context.hasBluetoothPermissions()
         onPauseOrDispose { }
     }
+    // Dopo un rifiuto definitivo il sistema non mostra più la richiesta: resta solo la pagina delle impostazioni.
+    val activity = LocalActivity.current
+    var permissionPermanentlyDenied by rememberSaveable { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         permissionsGranted = context.hasBluetoothPermissions()
+        permissionPermanentlyDenied = !permissionsGranted && activity != null &&
+            BLUETOOTH_PERMISSIONS.none { permission -> activity.shouldShowRequestPermissionRationale(permission) }
+    }
+    val openAppSettings = {
+        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)))
     }
     val enableBluetoothLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
 
@@ -98,7 +107,9 @@ fun OpenCgd1App(
     when {
         !settingsState.preferences.onboardingCompleted -> WelcomeScreen(
             permissionsGranted = permissionsGranted,
+            permissionPermanentlyDenied = permissionPermanentlyDenied,
             onRequestPermissions = { permissionLauncher.launch(BLUETOOTH_PERMISSIONS) },
+            onOpenAppSettings = openAppSettings,
             onFinish = settingsActions::onCompleteOnboarding,
             modifier = modifier,
         )
@@ -118,11 +129,7 @@ fun OpenCgd1App(
             text = stringResource(R.string.gate_permission),
             modifier = modifier,
             primaryAction = stringResource(R.string.action_grant_permission) to { permissionLauncher.launch(BLUETOOTH_PERMISSIONS) },
-            secondaryAction = stringResource(R.string.action_open_app_settings) to {
-                context.startActivity(
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
-                )
-            },
+            secondaryAction = stringResource(R.string.action_open_app_settings) to openAppSettings,
         )
         state.isBluetoothEnabled == null -> Box(modifier)
         state.isBluetoothEnabled == false -> CenteredMessage(

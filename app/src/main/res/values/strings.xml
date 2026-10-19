@@ -173,6 +173,16 @@
     <string name="ringtone_original_source">Downloaded from Qingping\'s server</string>
     <string name="ringtone_original_loading">Loading the list from Qingping…</string>
     <string name="ringtone_original_failed">Couldn\'t reach Qingping\'s server. Check your connection.</string>
-    <string name="ringtone_play_on_clock">Play on the clock</string>
     <string name="error_ringtone_download">Download failed. Check your connection.</string>
+    <string name="ringtone_test">Test with an alarm in a minute</string>
+    <string name="ringtone_test_hint">The app sets a temporary alarm and deletes it after it rings.</string>
+    <string name="ringtone_test_pending">Test alarm at %1$s: it will be deleted after it rings.</string>
+    <string name="message_test_alarm_set">Test alarm set for %1$s</string>
+    <string name="message_test_alarm_master_off">Alarms are turned off on the clock: turn them on to test the ringtone.</string>
+    <string name="welcome_allow">Allow</string>
+    <string name="welcome_open_settings">Open settings</string>
+    <string name="welcome_permission_required">Without this permission the app can\'t find the clock.</string>
+    <string name="welcome_permission_denied">The permission was denied. Open the app settings, go to Permissions and allow “Nearby devices”.</string>
+    <string name="app_settings_theme">Theme</string>
+    <string name="app_settings_app_language">App language</string>
 </resources>

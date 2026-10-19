@@ -20,6 +20,7 @@ import it.cgd1.sveglia.protocol.DeviceSettings
 import it.cgd1.sveglia.protocol.SensorData
 import it.cgd1.sveglia.ui.UiText
 import it.cgd1.sveglia.ui.formatOffset
+import it.cgd1.sveglia.ui.formatTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -45,12 +46,16 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
+import java.time.Duration
 import java.time.Instant
+import java.time.LocalDateTime
 import java.time.ZoneId
 import javax.inject.Inject
 
 private const val SCAN_TIMEOUT_MS = 30_000L
 private const val ADVERTISEMENT_TIMEOUT_MS = 4_000L
+private const val TEST_ALARM_MARGIN_S = 30
+private const val TEST_ALARM_RING_MS = 90_000L
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -263,9 +268,47 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    override fun onPlayOnClock() = op { s, _ ->
-        val volume = state.value.settings?.volume ?: return@op
-        s.previewRingtone(volume).getOrThrow()
+    // La sveglia non ha un comando per riprodurre la suoneria caricata: l'unico modo fedele è farla suonare davvero.
+    override fun onTestRingtone() = op { s, update ->
+        val settings = state.value.settings ?: return@op
+        if (!settings.alarmsEnabled) {
+            showMessage(UiText(R.string.message_test_alarm_master_off))
+            return@op
+        }
+        val slot = state.value.alarms.indexOfFirst { it.isEmpty }
+        if (slot < 0) {
+            showMessage(UiText(R.string.message_slots_full))
+            return@op
+        }
+        val now = LocalDateTime.now()
+        // Almeno 30 secondi di margine: il tempo di scriverla e di avvicinarsi alla sveglia.
+        val fireAt = now.plusMinutes(if (now.second < TEST_ALARM_MARGIN_S) 1 else 2).withSecond(0).withNano(0)
+        val alarm = Alarm(enabled = true, hour = fireAt.hour, minute = fireAt.minute, days = emptySet(), snooze = false)
+        s.writeAlarm(slot, alarm).getOrThrow()
+        update { it.withAlarm(slot, alarm).copy(testAlarm = alarm) }
+        showMessage(UiText(R.string.message_test_alarm_set, formatTime(alarm.hour, alarm.minute)))
+        sessionScope?.launch {
+            delay(Duration.between(LocalDateTime.now(), fireAt).toMillis() + TEST_ALARM_RING_MS)
+            removeTestAlarm(slot, alarm)
+        }
+    }
+
+    private fun removeTestAlarm(slot: Int, alarm: Alarm) = op { s, update ->
+        if (state.value.alarms.getOrNull(slot) == alarm) {
+            s.writeAlarm(slot, Alarm.EMPTY).getOrThrow()
+            update { it.withAlarm(slot, Alarm.EMPTY) }
+        }
+        update { it.copy(testAlarm = null) }
+    }
+
+    override fun onVolumeChange(volume: Int) = op { s, update ->
+        val current = state.value.settings ?: return@op
+        if (current.volume != volume) {
+            val next = current.copy(volume = volume)
+            s.writeSettings(next).getOrThrow()
+            update { it.copy(settings = next) }
+        }
+        s.previewVolume(volume).getOrThrow()
     }
 
     override fun onPreviewRingtone(id: String) {

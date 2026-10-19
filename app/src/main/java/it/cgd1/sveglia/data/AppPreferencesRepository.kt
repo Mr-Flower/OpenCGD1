@@ -22,7 +22,7 @@ class AppPreferencesRepository @Inject constructor(private val dataStore: DataSt
             AppPreferences(
                 themeMode = prefs[KEY_THEME]?.let { name -> ThemeMode.entries.firstOrNull { it.name == name } }
                     ?: ThemeMode.SYSTEM,
-                useDynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: true,
+                useDynamicColor = prefs[KEY_DYNAMIC_COLOR] ?: false,
                 onboardingCompleted = prefs[KEY_ONBOARDING_COMPLETED] ?: false,
             )
         }

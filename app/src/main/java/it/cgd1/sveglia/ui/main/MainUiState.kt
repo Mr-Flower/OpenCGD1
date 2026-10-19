@@ -38,6 +38,8 @@ data class MainUiState(
     val isConvertingRingtone: Boolean = false,
     val customRingtone: CustomRingtoneInfo? = null,
     val originalRingtones: OriginalRingtonesState = OriginalRingtonesState.NotLoaded,
+    /** Sveglia temporanea impostata per ascoltare la suoneria; l'app la cancella dopo che ha suonato. */
+    val testAlarm: Alarm? = null,
 ) {
     val currentRingtone: CurrentRingtone?
         get() = settings?.let {

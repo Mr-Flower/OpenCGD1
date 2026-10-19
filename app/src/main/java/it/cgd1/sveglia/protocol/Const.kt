@@ -38,7 +38,8 @@ object Cgd1 {
     val CMD_SET_ALARM = hex("0705")
     val CMD_SET_SETTINGS = hex("1301")
     val CMD_BRIGHTNESS = hex("0203")
-    val CMD_PREVIEW_RINGTONE = hex("0204")
+    // Fa suonare un bip al volume indicato (non la suoneria caricata): serve a provare il volume.
+    val CMD_PREVIEW_VOLUME = hex("0204")
     val CMD_TIME_SYNC = hex("0509")
     val CMD_AUDIO_INIT = hex("0810")
     val CMD_AUDIO_DATA = hex("8108")

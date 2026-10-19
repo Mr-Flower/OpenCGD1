@@ -128,7 +128,7 @@ private class BleClockSession(
     override suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit> =
         call { client.uploadRingtone(pcm, signature, onProgress) }
 
-    override suspend fun previewRingtone(volume: Int): Result<Unit> = call { client.previewRingtone(volume) }
+    override suspend fun previewVolume(volume: Int): Result<Unit> = call { client.previewVolume(volume) }
 
     override suspend fun syncTime(): Result<Unit> = call { client.syncTime() }
 

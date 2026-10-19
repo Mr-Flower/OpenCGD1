@@ -26,6 +26,9 @@ interface ClockActions {
     fun onToggleAlarm(slot: Int, enabled: Boolean)
     fun onDeleteAlarm(slot: Int)
 
+    /** Scrive il volume e fa suonare un bip di prova a quel volume. */
+    fun onVolumeChange(volume: Int)
+
     /** [transform] si applica alle impostazioni correnti al momento della scrittura, non del tocco. */
     fun onUpdateSettings(transform: (DeviceSettings) -> DeviceSettings)
 }
@@ -33,7 +36,7 @@ interface ClockActions {
 @Stable
 interface RingtoneActions {
     fun onLoadOriginalRingtones()
-    fun onPlayOnClock()
+    fun onTestRingtone()
     fun onPreviewRingtone(id: String)
     fun onPreviewCustomRingtone()
     fun onStopPreview()

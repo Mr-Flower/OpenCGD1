@@ -166,6 +166,16 @@
     <string name="ringtone_original_source">Scaricata dal server Qingping</string>
     <string name="ringtone_original_loading">Caricamento dell\'elenco da Qingping…</string>
     <string name="ringtone_original_failed">Impossibile raggiungere il server Qingping. Controlla la connessione.</string>
-    <string name="ringtone_play_on_clock">Fai suonare la sveglia</string>
     <string name="error_ringtone_download">Download non riuscito. Controlla la connessione.</string>
+    <string name="ringtone_test">Prova con una sveglia tra un minuto</string>
+    <string name="ringtone_test_hint">L\'app imposta una sveglia temporanea e la cancella dopo che ha suonato.</string>
+    <string name="ringtone_test_pending">Sveglia di prova alle %1$s: verrà cancellata dopo che ha suonato.</string>
+    <string name="message_test_alarm_set">Sveglia di prova impostata alle %1$s</string>
+    <string name="message_test_alarm_master_off">Le sveglie sono disattivate: attivale per provare la suoneria.</string>
+    <string name="welcome_allow">Consenti</string>
+    <string name="welcome_open_settings">Apri impostazioni</string>
+    <string name="welcome_permission_required">Senza questo permesso l\'app non può trovare la sveglia.</string>
+    <string name="welcome_permission_denied">Il permesso è stato negato. Apri le impostazioni dell\'app, vai su Autorizzazioni e consenti «Dispositivi nelle vicinanze».</string>
+    <string name="app_settings_theme">Tema</string>
+    <string name="app_settings_app_language">Lingua dell\'app</string>
 </resources>

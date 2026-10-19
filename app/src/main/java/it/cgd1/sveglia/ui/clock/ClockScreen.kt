@@ -173,6 +173,7 @@ fun ClockScreen(
                             settings = settings,
                             currentRingtone = state.currentRingtone,
                             onUpdate = actions::onUpdateSettings,
+                            onVolumeChange = actions::onVolumeChange,
                             onOpenRingtones = onOpenRingtones,
                             modifier = Modifier.contentWidth(),
                         )
@@ -210,6 +211,7 @@ private object PreviewClockActions : ClockActions {
     override fun onToggleAlarm(slot: Int, enabled: Boolean) = Unit
     override fun onDeleteAlarm(slot: Int) = Unit
     override fun onUpdateSettings(transform: (DeviceSettings) -> DeviceSettings) = Unit
+    override fun onVolumeChange(volume: Int) = Unit
 }
 
 internal val previewSettings = DeviceSettings(

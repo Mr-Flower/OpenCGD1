@@ -66,7 +66,7 @@ class FakeClockSession(private val snapshot: ClockSnapshot) : ClockSession {
             uploads += pcm to signature
         }
 
-    override suspend fun previewRingtone(volume: Int): Result<Unit> = write { clockPreviews++ }
+    override suspend fun previewVolume(volume: Int): Result<Unit> = write { clockPreviews++ }
 
     override suspend fun syncTime(): Result<Unit> = Result.success(Unit)
 

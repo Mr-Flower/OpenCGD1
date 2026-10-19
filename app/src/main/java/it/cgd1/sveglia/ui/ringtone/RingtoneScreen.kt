@@ -64,8 +64,10 @@ import it.cgd1.sveglia.R
 import it.cgd1.sveglia.data.ringtone.BUILT_IN_RINGTONES
 import it.cgd1.sveglia.data.ringtone.CurrentRingtone
 import it.cgd1.sveglia.data.ringtone.RingtoneOption
+import it.cgd1.sveglia.protocol.Alarm
 import it.cgd1.sveglia.protocol.toHex
 import it.cgd1.sveglia.ui.components.SectionHeader
+import it.cgd1.sveglia.ui.formatTime
 import it.cgd1.sveglia.ui.main.CUSTOM_RINGTONE_PREVIEW_ID
 import it.cgd1.sveglia.ui.main.CustomRingtoneInfo
 import it.cgd1.sveglia.ui.main.MainUiState
@@ -121,8 +123,9 @@ fun RingtoneScreen(
                 CurrentRingtoneCard(
                     current = current,
                     uploadProgress = state.ringtoneUploadProgress,
-                    canPlayOnClock = canChange && !uploading,
-                    onPlayOnClock = actions::onPlayOnClock,
+                    testAlarm = state.testAlarm,
+                    canTest = canChange && !uploading && state.testAlarm == null,
+                    onTest = actions::onTestRingtone,
                     modifier = Modifier.contentWidth(),
                 )
             }
@@ -206,8 +209,9 @@ private fun Modifier.contentWidth(): Modifier = widthIn(max = 640.dp).fillMaxWid
 private fun CurrentRingtoneCard(
     current: CurrentRingtone?,
     uploadProgress: Float?,
-    canPlayOnClock: Boolean,
-    onPlayOnClock: () -> Unit,
+    testAlarm: Alarm?,
+    canTest: Boolean,
+    onTest: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -232,10 +236,19 @@ private fun CurrentRingtoneCard(
                 Text(stringResource(R.string.ringtone_uploading_hint), style = MaterialTheme.typography.bodySmall)
             } else {
                 Spacer(Modifier.height(12.dp))
-                FilledTonalButton(onClick = onPlayOnClock, enabled = canPlayOnClock) {
-                    Icon(Icons.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.ringtone_play_on_clock))
+                if (testAlarm != null) {
+                    Text(
+                        stringResource(R.string.ringtone_test_pending, formatTime(testAlarm.hour, testAlarm.minute)),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                } else {
+                    FilledTonalButton(onClick = onTest, enabled = canTest) {
+                        Icon(painterResource(R.drawable.ic_clock), contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.ringtone_test))
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(stringResource(R.string.ringtone_test_hint), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
@@ -355,7 +368,7 @@ fun CurrentRingtone.label(): String = when (this) {
 
 private object PreviewRingtoneActions : RingtoneActions {
     override fun onLoadOriginalRingtones() = Unit
-    override fun onPlayOnClock() = Unit
+    override fun onTestRingtone() = Unit
     override fun onPreviewRingtone(id: String) = Unit
     override fun onPreviewCustomRingtone() = Unit
     override fun onStopPreview() = Unit

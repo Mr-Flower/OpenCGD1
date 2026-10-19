@@ -167,9 +167,9 @@ class Cgd1Client(
         }
     }
 
-    /** Fa suonare la suoneria attuale sulla sveglia, al volume indicato. */
-    suspend fun previewRingtone(volume: Int) {
-        runCommand { writeWithAck(Cgd1.DATA_WRITE_UUID, Cgd1.CMD_PREVIEW_RINGTONE + byteArrayOf(volume.toByte())) }
+    /** Bip di prova al volume indicato; per sentire la suoneria vera serve una sveglia. */
+    suspend fun previewVolume(volume: Int) {
+        runCommand { writeWithAck(Cgd1.DATA_WRITE_UUID, Cgd1.CMD_PREVIEW_VOLUME + byteArrayOf(volume.toByte())) }
     }
 
 

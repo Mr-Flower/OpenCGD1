@@ -1,18 +1,27 @@
 package it.cgd1.sveglia.ui.components
 
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -79,7 +89,7 @@ fun SliderRow(
             Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
             Text(shown, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
         }
-        Slider(
+        ClassicSlider(
             value = current,
             onValueChange = { current = it },
             valueRange = range.first.toFloat()..range.last.toFloat(),
@@ -91,6 +101,67 @@ fun SliderRow(
             modifier = Modifier.semantics { stateDescription = shown },
         )
     }
+}
+
+private val TrackHeight = 6.dp
+private val ThumbSize = 20.dp
+private val ThumbPressedSize = 26.dp
+private val TickRadius = 1.5.dp
+
+/**
+ * Lo stile delle barre di volume nelle Impostazioni di Android: binario sottile arrotondato e pomello rotondo,
+ * invece della barretta verticale dello slider M3 recente. Colori e comportamento restano quelli di M3.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ClassicSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    onValueChangeFinished: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val dragged by interactionSource.collectIsDraggedAsState()
+    val thumbSize by animateDpAsState(if (pressed || dragged) ThumbPressedSize else ThumbSize, label = "thumb")
+    val colors = SliderDefaults.colors(
+        activeTickColor = MaterialTheme.colorScheme.onPrimary,
+        inactiveTickColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+    )
+    Slider(
+        value = value,
+        onValueChange = onValueChange,
+        valueRange = valueRange,
+        steps = steps,
+        onValueChangeFinished = onValueChangeFinished,
+        interactionSource = interactionSource,
+        colors = colors,
+        modifier = modifier,
+        thumb = {
+            Box(Modifier.size(ThumbPressedSize), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .size(thumbSize)
+                        .shadow(2.dp, CircleShape)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                )
+            }
+        },
+        track = { state ->
+            SliderDefaults.Track(
+                sliderState = state,
+                colors = colors,
+                drawStopIndicator = null,
+                drawTick = { offset, color -> drawCircle(color, radius = TickRadius.toPx(), center = offset) },
+                thumbTrackGapSize = 0.dp,
+                trackInsideCornerSize = TrackHeight / 2,
+                modifier = Modifier.height(TrackHeight),
+            )
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

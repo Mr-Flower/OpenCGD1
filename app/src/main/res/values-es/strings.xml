@@ -166,6 +166,16 @@
     <string name="ringtone_original_source">Descargado del servidor de Qingping</string>
     <string name="ringtone_original_loading">Cargando la lista desde Qingping…</string>
     <string name="ringtone_original_failed">No se pudo conectar con el servidor de Qingping. Revisa la conexión.</string>
-    <string name="ringtone_play_on_clock">Hacer sonar el reloj</string>
     <string name="error_ringtone_download">Error en la descarga. Revisa la conexión.</string>
+    <string name="ringtone_test">Probar con una alarma dentro de un minuto</string>
+    <string name="ringtone_test_hint">La app pone una alarma temporal y la borra después de que suene.</string>
+    <string name="ringtone_test_pending">Alarma de prueba a las %1$s: se borrará después de sonar.</string>
+    <string name="message_test_alarm_set">Alarma de prueba a las %1$s</string>
+    <string name="message_test_alarm_master_off">Las alarmas están desactivadas en el reloj: actívalas para probar el tono.</string>
+    <string name="welcome_allow">Permitir</string>
+    <string name="welcome_open_settings">Abrir ajustes</string>
+    <string name="welcome_permission_required">Sin este permiso la app no puede encontrar el reloj.</string>
+    <string name="welcome_permission_denied">Se denegó el permiso. Abre los ajustes de la app, ve a Permisos y permite «Dispositivos cercanos».</string>
+    <string name="app_settings_theme">Tema</string>
+    <string name="app_settings_app_language">Idioma de la app</string>
 </resources>

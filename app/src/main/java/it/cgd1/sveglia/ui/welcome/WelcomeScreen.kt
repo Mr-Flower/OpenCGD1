@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,13 +54,22 @@ private const val PERMISSION_PAGE = 2
 @Composable
 fun WelcomeScreen(
     permissionsGranted: Boolean,
+    permissionPermanentlyDenied: Boolean,
     onRequestPermissions: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onFinish: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val pager = rememberPagerState(pageCount = { PAGE_COUNT })
     val scope = rememberCoroutineScope()
     val isLast = pager.currentPage == PAGE_COUNT - 1
+    // Senza permesso l'app non serve a niente: dalla pagina del permesso non si va avanti finché non c'è.
+    val blockedOnPermission = pager.currentPage == PERMISSION_PAGE && !permissionsGranted
+    fun goTo(page: Int) = scope.launch { pager.animateScrollToPage(page) }
+
+    LaunchedEffect(permissionsGranted) {
+        if (permissionsGranted && pager.currentPage == PERMISSION_PAGE) pager.animateScrollToPage(PERMISSION_PAGE + 1)
+    }
 
     Scaffold(
         modifier = modifier,
@@ -72,19 +81,32 @@ fun WelcomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.weight(1f)) {
-                    if (!isLast) TextButton(onClick = onFinish) { Text(stringResource(R.string.welcome_skip)) }
+                    // "Salta" salta la presentazione, non il permesso.
+                    if (pager.currentPage < PERMISSION_PAGE && !permissionsGranted) {
+                        TextButton(onClick = { goTo(PERMISSION_PAGE) }) { Text(stringResource(R.string.welcome_skip)) }
+                    } else if (!isLast && permissionsGranted) {
+                        TextButton(onClick = onFinish) { Text(stringResource(R.string.welcome_skip)) }
+                    }
                 }
                 PageIndicator(pager.currentPage)
                 Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                    Button(onClick = {
-                        if (isLast) onFinish() else scope.launch { pager.animateScrollToPage(pager.currentPage + 1) }
-                    }) { Text(stringResource(if (isLast) R.string.welcome_start else R.string.welcome_next)) }
+                    when {
+                        blockedOnPermission && permissionPermanentlyDenied -> Button(onClick = onOpenAppSettings) {
+                            Text(stringResource(R.string.welcome_open_settings), maxLines = 1)
+                        }
+                        blockedOnPermission -> Button(onClick = onRequestPermissions) {
+                            Text(stringResource(R.string.welcome_allow), maxLines = 1)
+                        }
+                        isLast -> Button(onClick = onFinish) { Text(stringResource(R.string.welcome_start)) }
+                        else -> Button(onClick = { goTo(pager.currentPage + 1) }) { Text(stringResource(R.string.welcome_next)) }
+                    }
                 }
             }
         },
     ) { padding ->
         HorizontalPager(
             state = pager,
+            userScrollEnabled = !blockedOnPermission,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -112,14 +134,24 @@ fun WelcomeScreen(
                     title = R.string.welcome_permission_title,
                     body = R.string.welcome_permission_body,
                 ) {
-                    if (permissionsGranted) {
-                        Text(
+                    when {
+                        permissionsGranted -> Text(
                             stringResource(R.string.welcome_permission_granted),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary,
                         )
-                    } else {
-                        FilledTonalButton(onClick = onRequestPermissions) { Text(stringResource(R.string.action_grant_permission)) }
+                        permissionPermanentlyDenied -> Text(
+                            stringResource(R.string.welcome_permission_denied),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                        )
+                        else -> Text(
+                            stringResource(R.string.welcome_permission_required),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                        )
                     }
                 }
                 else -> WelcomePage(
@@ -214,6 +246,12 @@ private fun PageIndicator(current: Int) {
 @Composable
 private fun WelcomeScreenPreview() {
     OpenCgd1Theme(dynamicColor = false) {
-        WelcomeScreen(permissionsGranted = false, onRequestPermissions = {}, onFinish = {})
+        WelcomeScreen(
+            permissionsGranted = false,
+            permissionPermanentlyDenied = false,
+            onRequestPermissions = {},
+            onOpenAppSettings = {},
+            onFinish = {},
+        )
     }
 }

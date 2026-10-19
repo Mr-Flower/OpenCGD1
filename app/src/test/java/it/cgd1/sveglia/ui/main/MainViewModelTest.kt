@@ -197,10 +197,25 @@ class MainViewModelTest {
         assertEquals(CurrentRingtone.Original("Cuckoo"), vm.uiState.value.currentRingtone)
     }
 
-    @Test fun playOnClockSendsThePreviewCommand() = runTest(dispatcher) {
+    @Test fun volumeChangeIsWrittenAndPreviewed() = runTest(dispatcher) {
         val vm = openedViewModel()
-        vm.onPlayOnClock()
+        vm.onVolumeChange(5)
         advanceUntilIdle()
+        assertEquals(5, repository.session.writtenSettings.last().volume)
         assertEquals(1, repository.session.clockPreviews)
+    }
+
+    @Test fun testAlarmIsWrittenInAFreeSlotAndRemovedAfterRinging() = runTest(dispatcher) {
+        val vm = openedViewModel()
+        vm.onTestRingtone()
+        runCurrent()
+        val (slot, alarm) = repository.session.writtenAlarms.single()
+        assertEquals(1, slot)
+        assertTrue(alarm.enabled && alarm.days.isEmpty())
+        assertEquals(alarm, vm.uiState.value.testAlarm)
+        // Il test avanza il tempo virtuale; l'ora della sveglia di prova dipende dall'orologio reale.
+        advanceUntilIdle()
+        assertEquals(1 to Alarm.EMPTY, repository.session.writtenAlarms.last())
+        assertNull(vm.uiState.value.testAlarm)
     }
 }

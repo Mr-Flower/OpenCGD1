@@ -38,8 +38,8 @@ interface ClockSession {
     /** Carica l'audio e lo conserva sotto [signature]; per attivarlo va poi scritta la firma nelle impostazioni. */
     suspend fun uploadRingtone(pcm: ByteArray, signature: ByteArray, onProgress: (Float) -> Unit): Result<Unit>
 
-    /** Fa suonare sulla sveglia la suoneria attuale. */
-    suspend fun previewRingtone(volume: Int): Result<Unit>
+    /** Bip di prova al volume indicato (la sveglia non sa riprodurre la suoneria su richiesta). */
+    suspend fun previewVolume(volume: Int): Result<Unit>
 
     /** Invia l'ora UTC; il fuso va scritto a parte nelle impostazioni. */
     suspend fun syncTime(): Result<Unit>
